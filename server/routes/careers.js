@@ -1,17 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { sendEmail } = require('../services/emailService');
+const { sendEmail } = require("../services/emailService");
 
 // POST /api/careers - Handle job application
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { name, email, phone, position, experience, coverLetter } = req.body;
 
     // Validate required fields
     if (!name || !email || !position) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please provide name, email, and position' 
+      return res.status(400).json({
+        success: false,
+        message: "Please provide name, email, and position",
       });
     }
 
@@ -19,26 +19,28 @@ router.post('/', async (req, res) => {
     try {
       // Send notification to admin
       await sendEmail({
-        to: 'guptasahil2175@gmail.com',
-        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        to: "guptasahil2175@gmail.com",
+        from: process.env.EMAIL_USER || "noreply@foundryai.com",
         subject: `Job Application: ${position}`,
         html: `
           <h2>New Job Application</h2>
           <p><strong>Position:</strong> ${position}</p>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-          <p><strong>Experience:</strong> ${experience || 'Not provided'}</p>
+          <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
+          <p><strong>Experience:</strong> ${experience || "Not provided"}</p>
           <p><strong>Cover Letter:</strong></p>
-          <p>${coverLetter || 'Not provided'}</p>
-        `
+          <p>${coverLetter || "Not provided"}</p>
+        `,
       });
-      console.log('Career application email sent successfully to guptasahil2175@gmail.com');
+      console.log(
+        "Career application email sent successfully to guptasahil2175@gmail.com"
+      );
 
       // Send auto-reply to the applicant
       await sendEmail({
         to: email,
-        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        from: process.env.EMAIL_USER || "noreply@foundryai.com",
         subject: `Application Received - ${position} at FoundryAI`,
         html: `
           <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
@@ -95,77 +97,79 @@ router.post('/', async (req, res) => {
                 </p>
               </div>
             </div>
-          `
-        });
-        console.log('Auto-reply sent successfully to', email);
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError.message);
-        // Continue anyway - don't fail the request
-      }
+          `,
+      });
+      console.log("Auto-reply sent successfully to", email);
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError.message);
+      // Continue anyway - don't fail the request
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: 'Application submitted successfully! We will review and get back to you.' 
+    res.status(200).json({
+      success: true,
+      message:
+        "Application submitted successfully! We will review and get back to you.",
     });
-
   } catch (error) {
-    console.error('Career application error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error. Please try again later.' 
+    console.error("Career application error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again later.",
     });
   }
 });
 
 // GET /api/careers - Get job listings
-router.get('/', (req, res) => {
+router.get("/", (req, res) => {
   const jobs = [
     {
       id: 1,
-      title: 'FullStack Developers with basic knowledge of Prompt Engineering',
-      department: 'Engineering',
-      type: 'Full time',
-      location: 'Bangalore, India',
-      description: 'Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.',
+      title: "FullStack Developers with basic knowledge of Prompt Engineering",
+      department: "Engineering",
+      type: "Full time",
+      location: "Bangalore, India",
+      description:
+        "Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.",
       requirements: [
-        '3+ years Full Stack Development',
-        'React/JavaScript expertise',
-        'Database design',
-        'Basic Prompt Engineering knowledge',
-        'API development'
-      ]
+        "3+ years Full Stack Development",
+        "React/JavaScript expertise",
+        "Database design",
+        "Basic Prompt Engineering knowledge",
+        "API development",
+      ],
     },
     {
       id: 2,
-      title: 'Software Engineer who have knowledge on GEO',
-      department: 'Engineering',
-      type: 'Full time',
-      location: 'Bangalore, India',
-      description: 'Build location based applications and services using geospatial technologies and mapping solutions.',
+      title: "Software Engineer who have knowledge on GEO",
+      department: "Engineering",
+      type: "Full time",
+      location: "Bangalore, India",
+      description:
+        "Build location based applications and services using geospatial technologies and mapping solutions.",
       requirements: [
-        '2+ years Software Engineering',
-        'GIS/Geospatial knowledge',
-        'Mapping APIs experience',
-        'Database systems',
-        'Problem solving skills'
-      ]
+        "2+ years Software Engineering",
+        "GIS/Geospatial knowledge",
+        "Mapping APIs experience",
+        "Database systems",
+        "Problem solving skills",
+      ],
     },
     {
       id: 3,
-      title: 'Performance Marketing Lead',
-      department: 'Marketing',
-      type: 'Full time',
-      location: 'Bangalore, India',
-      description: 'Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.',
+      title: "Performance Marketing Lead",
+      department: "Marketing",
+      type: "Full time",
+      location: "Bangalore, India",
+      description:
+        "Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.",
       requirements: [
-        '5+ years Performance Marketing',
-        'Digital advertising platforms',
-        'Analytics and data driven approach',
-        'Campaign optimization',
-        'Team leadership'
-      ]
-    }
+        "5+ years Performance Marketing",
+        "Digital advertising platforms",
+        "Analytics and data driven approach",
+        "Campaign optimization",
+        "Team leadership",
+      ],
+    },
   ];
 
   res.json(jobs);
