@@ -20,10 +20,13 @@ const connectDB = async () => {
   try {
     if (process.env.MONGODB_URI) {
       await mongoose.connect(process.env.MONGODB_URI);
-      console.log('MongoDB Connected');
+      console.log('✅ MongoDB Connected Successfully');
+    } else {
+      console.log('ℹ️  MongoDB URI not provided - running without database');
     }
   } catch (err) {
-    console.log('MongoDB connection optional - running without database');
+    console.error('❌ MongoDB Connection Error:', err.message);
+    console.log('ℹ️  Continuing without database - Forms will still work with email only');
   }
 };
 

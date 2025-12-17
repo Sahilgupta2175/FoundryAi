@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import API_BASE_URL from '../config/api';
 import { 
   HiBriefcase, 
   HiCpuChip, 
@@ -36,7 +35,7 @@ const Careers = () => {
 
   useEffect(() => {
     // Fetch jobs from API
-    fetch(`${API_BASE_URL}/api/careers`)
+    fetch(`${process.env.REACT_APP_API_URL}/api/careers`)
       .then(res => res.json())
       .then(data => setJobs(data))
       .catch(() => {
