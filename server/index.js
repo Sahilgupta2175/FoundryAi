@@ -7,8 +7,24 @@ require('dotenv').config();
 const app = express();
 
 // Middleware - CORS Configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://foundryai-sg.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean).map(url => url.replace(/\/$/, '')); // Remove trailing slashes
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const cleanOrigin = origin.replace(/\/$/, '');
+    if (allowedOrigins.some(allowed => cleanOrigin === allowed.replace(/\/$/, ''))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
