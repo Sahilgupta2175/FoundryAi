@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import API_BASE_URL from '../config/api';
 import { 
   HiBriefcase, 
   HiCpuChip, 
@@ -35,7 +36,7 @@ const Careers = () => {
 
   useEffect(() => {
     // Fetch jobs from API
-    fetch('/api/careers')
+    fetch(`${API_BASE_URL}/api/careers`)
       .then(res => res.json())
       .then(data => setJobs(data))
       .catch(() => {
@@ -131,7 +132,7 @@ const Careers = () => {
     setSubmitStatus(null);
 
     try {
-      const response = await fetch('/api/careers', {
+      const response = await fetch(`${API_BASE_URL}/api/careers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
