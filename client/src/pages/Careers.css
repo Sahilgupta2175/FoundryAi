@@ -1,0 +1,229 @@
+/* Careers Page Styles */
+
+.careers-page {
+  padding-top: 80px;
+}
+
+/* Hero */
+.careers-hero {
+  position: relative;
+  padding: var(--space-24) 0 var(--space-20);
+  overflow: hidden;
+}
+
+.careers-hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.careers-hero-bg .hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.careers-hero-bg .hero-glow {
+  position: absolute;
+  width: 800px;
+  height: 400px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, var(--color-primary-glow) 0%, transparent 70%);
+  opacity: 0.3;
+}
+
+.careers-hero-content {
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.careers-hero-title {
+  font-size: var(--text-5xl);
+  margin-bottom: var(--space-6);
+}
+
+.careers-hero-subtitle {
+  font-size: var(--text-xl);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* Benefits */
+.benefits-section {
+  background: var(--color-bg-secondary);
+}
+
+.benefit-card {
+  text-align: center;
+}
+
+.benefit-card .card-icon {
+  margin: 0 auto var(--space-4);
+}
+
+/* Jobs Section */
+.jobs-section {
+  position: relative;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.job-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  transition: all var(--transition-base);
+}
+
+.job-card:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+.job-header {
+  margin-bottom: var(--space-4);
+}
+
+.job-title {
+  font-size: var(--text-xl);
+  margin-bottom: var(--space-3);
+}
+
+.job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.job-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+.job-description {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: var(--space-4);
+}
+
+.job-requirements h4 {
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+
+.job-requirements ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.job-requirements li {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-primary);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+/* Application Form */
+.apply-section {
+  background: var(--color-bg-secondary);
+}
+
+.application-form {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.form-status {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+  text-align: center;
+  font-weight: var(--font-medium);
+}
+
+.form-status.success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.form-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.application-form .btn {
+  width: 100%;
+}
+
+/* Culture Section */
+.culture-section {
+  position: relative;
+}
+
+.culture-card {
+  text-align: center;
+}
+
+.culture-card .card-icon {
+  margin: 0 auto var(--space-4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .careers-hero-title {
+    font-size: var(--text-4xl);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-form {
+    padding: var(--space-6);
+  }
+
+  .job-meta {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
