@@ -24,6 +24,17 @@ const connectDB = async () => {
 
 connectDB();
 
+// Health Check Route
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
 // API Routes
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/careers', require('./routes/careers'));
