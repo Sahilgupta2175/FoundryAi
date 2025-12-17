@@ -30,13 +30,26 @@ const sendEmail = async (mailOptions) => {
     // Try SendGrid first if API key is available
     if (process.env.SENDGRID_API_KEY) {
       console.log('📧 Sending email via SendGrid...');
+      
+      // Build SendGrid message - only include content that exists
       const msg = {
         to: mailOptions.to,
         from: mailOptions.from || process.env.EMAIL_USER,
-        subject: mailOptions.subject,
-        text: mailOptions.text || '',
-        html: mailOptions.html || mailOptions.text
+        subject: mailOptions.subject
       };
+      
+      // Add content - prefer HTML if available, otherwise use text
+      if (mailOptions.html) {
+        msg.html = mailOptions.html;
+        // Also add plain text version if provided
+        if (mailOptions.text) {
+          msg.text = mailOptions.text;
+        }
+      } else if (mailOptions.text) {
+        msg.text = mailOptions.text;
+      } else {
+        throw new Error('Email must have either html or text content');
+      }
       
       await sgMail.send(msg);
       console.log('✅ Email sent successfully via SendGrid');
