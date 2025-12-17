@@ -11,10 +11,16 @@
     "install-all": "npm install && cd client && npm install",
     "build": "cd client && npm run build"
   },
-  "keywords": ["foundryai", "startup", "ai", "mern"],
+  "keywords": [
+    "foundryai",
+    "startup",
+    "ai",
+    "mern"
+  ],
   "author": "FoundryAI",
   "license": "MIT",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",

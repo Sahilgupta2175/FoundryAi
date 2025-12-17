@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../services/emailService');
 
 // POST /api/careers - Handle job application
 router.post('/', async (req, res) => {
@@ -15,89 +15,75 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Send email notification (configure in production)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        },
-        tls: {
-          rejectUnauthorized: false
-        }
+    // Send email notification
+    try {
+      // Send notification to admin
+      await sendEmail({
+        to: 'guptasahil2175@gmail.com',
+        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        subject: `Job Application: ${position}`,
+        html: `
+          <h2>New Job Application</h2>
+          <p><strong>Position:</strong> ${position}</p>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+          <p><strong>Experience:</strong> ${experience || 'Not provided'}</p>
+          <p><strong>Cover Letter:</strong></p>
+          <p>${coverLetter || 'Not provided'}</p>
+        `
       });
+      console.log('Career application email sent successfully to guptasahil2175@gmail.com');
 
-      try {
-        // Send notification to admin
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: 'guptasahil2175@gmail.com',
-          subject: `Job Application: ${position}`,
-          html: `
-            <h2>New Job Application</h2>
-            <p><strong>Position:</strong> ${position}</p>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-            <p><strong>Experience:</strong> ${experience || 'Not provided'}</p>
-            <p><strong>Cover Letter:</strong></p>
-            <p>${coverLetter || 'Not provided'}</p>
-          `
-        });
-        console.log('Career application email sent successfully to guptasahil2175@gmail.com');
-
-        // Send auto-reply to the applicant
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: `Application Received - ${position} at FoundryAI`,
-          html: `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #ffffff; font-size: 28px; margin: 0;">Foundry<span style="background: linear-gradient(135deg, #0066ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI</span></h1>
+      // Send auto-reply to the applicant
+      await sendEmail({
+        to: email,
+        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        subject: `Application Received - ${position} at FoundryAI`,
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #ffffff; font-size: 28px; margin: 0;">Foundry<span style="background: linear-gradient(135deg, #0066ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI</span></h1>
+            </div>
+            
+            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px;">
+              <h2 style="color: #ffffff; margin-top: 0;">Hello ${name}! 🚀</h2>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                Thank you for your interest in joining <strong style="color: #0066ff;">FoundryAI</strong>! We're thrilled to confirm that we've received your application for the position of:
+              </p>
+              
+              <div style="background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 212, 255, 0.2)); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+                <h3 style="color: #ffffff; margin: 0; font-size: 20px;">${position}</h3>
               </div>
               
-              <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px;">
-                <h2 style="color: #ffffff; margin-top: 0;">Hello ${name}! 🚀</h2>
-                
-                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                  Thank you for your interest in joining <strong style="color: #0066ff;">FoundryAI</strong>! We're thrilled to confirm that we've received your application for the position of:
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                At FoundryAI, we don't just build products – we build the future. As a Startup Studio specializing in AI-powered ventures, we're always looking for talented individuals who share our passion for innovation and excellence.
+              </p>
+              
+              <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                <p style="color: #ffffff; margin: 0; font-size: 14px;">
+                  <strong>📋 What's Next?</strong><br>
+                  <span style="color: #94a3b8;">Our hiring team will carefully review your application. If your profile matches our requirements, we'll reach out to schedule an initial conversation within 5-7 business days.</span>
                 </p>
-                
-                <div style="background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 212, 255, 0.2)); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
-                  <h3 style="color: #ffffff; margin: 0; font-size: 20px;">${position}</h3>
-                </div>
-                
-                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                  At FoundryAI, we don't just build products – we build the future. As a Startup Studio specializing in AI-powered ventures, we're always looking for talented individuals who share our passion for innovation and excellence.
-                </p>
-                
-                <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                  <p style="color: #ffffff; margin: 0; font-size: 14px;">
-                    <strong>📋 What's Next?</strong><br>
-                    <span style="color: #94a3b8;">Our hiring team will carefully review your application. If your profile matches our requirements, we'll reach out to schedule an initial conversation within 5-7 business days.</span>
-                  </p>
-                </div>
-                
-                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                  <strong style="color: #ffffff;">Why FoundryAI?</strong>
-                </p>
-                <ul style="color: #94a3b8; font-size: 15px; line-height: 1.8; padding-left: 20px;">
-                  <li>Work on multiple cutting-edge AI startups</li>
-                  <li>Collaborate with world-class engineers and entrepreneurs</li>
-                  <li>Be at the forefront of artificial intelligence innovation</li>
-                  <li>Shape the future of technology</li>
-                </ul>
-                
-                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                  We appreciate you taking the time to apply and look forward to potentially welcoming you to our team!
-                </p>
-                
-                <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin-bottom: 0;">
-                  Best of luck,<br>
+              </div>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                <strong style="color: #ffffff;">Why FoundryAI?</strong>
+              </p>
+              <ul style="color: #94a3b8; font-size: 15px; line-height: 1.8; padding-left: 20px;">
+                <li>Work on multiple cutting-edge AI startups</li>
+                <li>Collaborate with world-class engineers and entrepreneurs</li>
+                <li>Be at the forefront of artificial intelligence innovation</li>
+                <li>Shape the future of technology</li>
+              </ul>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                We appreciate you taking the time to apply and look forward to potentially welcoming you to our team!
+              </p>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin-bottom: 0;">
+                Best of luck,<br>
                   <strong style="color: #ffffff;">The FoundryAI Talent Team</strong>
                 </p>
               </div>
