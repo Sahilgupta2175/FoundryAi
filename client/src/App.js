@@ -9,8 +9,6 @@ import OurModel from './pages/OurModel';
 import Portfolio from './pages/Portfolio';
 import Careers from './pages/Careers';
 import Contact from './pages/Contact';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
 import ScrollToTop from './components/ScrollToTop';
 
 function App() {
@@ -27,8 +25,6 @@ function App() {
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </AnimatePresence>
         <Footer />
