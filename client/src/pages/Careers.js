@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
@@ -10,7 +10,8 @@ import {
   HiHeart,
   HiSparkles,
   HiMapPin,
-  HiClock
+  HiClock,
+  HiDocumentArrowUp
 } from 'react-icons/hi2';
 import './Careers.css';
 
@@ -28,8 +29,11 @@ const Careers = () => {
     phone: '',
     position: '',
     experience: '',
-    coverLetter: '',
   });
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
@@ -125,32 +129,77 @@ const Careers = () => {
     });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        setSubmitStatus({ type: 'error', message: 'Please upload a PDF or Word document' });
+        return;
+      }
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setSubmitStatus({ type: 'error', message: 'File size must be less than 5MB' });
+        return;
+      }
+      setResumeFile(file);
+      setSubmitStatus(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
+      let resumeUrl = null;
+
+      // Upload resume to Cloudinary if file is selected
+      if (resumeFile) {
+        setIsUploading(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('resume', resumeFile);
+
+        const uploadResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/careers/upload-resume`, {
+          method: 'POST',
+          body: formDataUpload,
+        });
+
+        const uploadData = await uploadResponse.json();
+        
+        if (uploadData.success) {
+          resumeUrl = uploadData.url;
+        } else {
+          throw new Error(uploadData.message || 'Resume upload failed');
+        }
+        setIsUploading(false);
+      }
+
+      // Submit application with resume URL
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/careers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, resumeUrl }),
       });
 
       const data = await response.json();
 
       if (data.success) {
         setSubmitStatus({ type: 'success', message: data.message });
-        setFormData({ name: '', email: '', phone: '', position: '', experience: '', coverLetter: '' });
+        setFormData({ name: '', email: '', phone: '', position: '', experience: '' });
+        setResumeFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         setSubmitStatus({ type: 'error', message: data.message });
       }
     } catch (error) {
-      setSubmitStatus({ type: 'success', message: 'Application submitted successfully!' });
-      setFormData({ name: '', email: '', phone: '', position: '', experience: '', coverLetter: '' });
+      setSubmitStatus({ type: 'error', message: 'Failed to submit application. Please try again.' });
     }
 
     setIsSubmitting(false);
+    setIsUploading(false);
   };
 
   return (
@@ -364,14 +413,38 @@ const Careers = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Cover Letter / Additional Information</label>
-              <textarea
-                name="coverLetter"
-                className="form-textarea"
-                value={formData.coverLetter}
-                onChange={handleInputChange}
-                placeholder="Tell us about yourself and why you'd be a great fit..."
-              />
+              <label className="form-label">Upload Resume *</label>
+              <div 
+                className={`resume-upload-area ${resumeFile ? 'has-file' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx"
+                  style={{ display: 'none' }}
+                />
+                <div className="upload-content">
+                  <HiDocumentArrowUp className="upload-icon" />
+                  {resumeFile ? (
+                    <div className="file-info">
+                      <span className="file-name">{resumeFile.name}</span>
+                      <span className="file-size">({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="upload-text">Click to upload your resume</span>
+                      <span className="upload-hint">PDF or Word document (max 5MB)</span>
+                    </>
+                  )}
+                </div>
+                {isUploading && (
+                  <div className="upload-progress">
+                    <div className="progress-bar" style={{ width: '100%' }}></div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {submitStatus && (

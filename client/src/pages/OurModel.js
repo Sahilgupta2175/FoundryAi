@@ -32,7 +32,7 @@ const OurModel = () => {
       number: '01',
       icon: <HiLightBulb />,
       title: 'Ideation & Validation',
-      description: 'You bring us your disruptive concept. We use our AI-powered analytical tools to stress-test the business model, analyze the market landscape, and build a data-driven financial forecast.',
+      description: 'You bring us all details of your disruptive concept - your ideation and validation work. We use our AI-powered analytical tools to stress-test the business model, analyze the market landscape, and evaluate your readiness. Based on this comprehensive review, we select promising ventures for the next stage of support. Be ready to incorporate your company ASAP.',
     },
     {
       number: '02',

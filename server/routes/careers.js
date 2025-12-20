@@ -1,11 +1,87 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const mongoose = require("mongoose");
 const { sendEmail } = require("../services/emailService");
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure Cloudinary storage for multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "foundryai-resumes",
+    resource_type: "raw",
+    allowed_formats: ["pdf", "doc", "docx"],
+    public_id: (req, file) => `resume-${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
+  },
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'), false);
+    }
+  }
+});
+
+// Job Application Schema for MongoDB
+const applicationSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: String,
+  position: { type: String, required: true },
+  experience: String,
+  resumeUrl: String,
+  resumePublicId: String,
+  status: { type: String, default: 'pending', enum: ['pending', 'reviewed', 'shortlisted', 'rejected'] },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// Only create model if it doesn't exist
+const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema);
+
+// POST /api/careers/upload-resume - Upload resume to Cloudinary
+router.post("/upload-resume", upload.single("resume"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      url: req.file.path,
+      publicId: req.file.filename,
+      message: "Resume uploaded successfully",
+    });
+  } catch (error) {
+    console.error("Resume upload error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to upload resume",
+    });
+  }
+});
 
 // POST /api/careers - Handle job application
 router.post("/", async (req, res) => {
   try {
-    const { name, email, phone, position, experience, coverLetter } = req.body;
+    const { name, email, phone, position, experience, resumeUrl } = req.body;
 
     // Validate required fields
     if (!name || !email || !position) {
@@ -15,9 +91,27 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Save application to MongoDB if connected
+    let savedApplication = null;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        savedApplication = await Application.create({
+          name,
+          email,
+          phone,
+          position,
+          experience,
+          resumeUrl,
+        });
+        console.log("Application saved to database:", savedApplication._id);
+      } catch (dbError) {
+        console.error("Database save error:", dbError);
+      }
+    }
+
     // Send email notification
     try {
-      // Send notification to admin
+      // Send notification to admin with resume link
       await sendEmail({
         to: "guptasahil2175@gmail.com",
         from: process.env.EMAIL_USER || "noreply@foundryai.com",
@@ -29,8 +123,8 @@ router.post("/", async (req, res) => {
           <p><strong>Email:</strong> ${email}</p>
           <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
           <p><strong>Experience:</strong> ${experience || "Not provided"}</p>
-          <p><strong>Cover Letter:</strong></p>
-          <p>${coverLetter || "Not provided"}</p>
+          ${resumeUrl ? `<p><strong>Resume:</strong> <a href="${resumeUrl}" target="_blank">View Resume</a></p>` : '<p><strong>Resume:</strong> Not uploaded</p>'}
+          ${savedApplication ? `<p><strong>Application ID:</strong> ${savedApplication._id}</p>` : ''}
         `,
       });
       console.log(
@@ -173,6 +267,191 @@ router.get("/", (req, res) => {
   ];
 
   res.json(jobs);
+});
+
+// GET /api/careers/applications - Get all applications (protected route for hiring)
+router.get("/applications", async (req, res) => {
+  try {
+    // Simple API key authentication (you can enhance this)
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access",
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database not connected",
+      });
+    }
+
+    const applications = await Application.find()
+      .sort({ createdAt: -1 })
+      .select('-__v');
+
+    res.json({
+      success: true,
+      count: applications.length,
+      applications,
+    });
+  } catch (error) {
+    console.error("Error fetching applications:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+// GET /api/careers/applications/:id/resume - Proxy resume for preview/download
+router.get("/applications/:id/resume", async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access",
+      });
+    }
+
+    const application = await Application.findById(req.params.id);
+    if (!application || !application.resumeUrl) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+    }
+
+    const { download } = req.query;
+    const resumeUrl = application.resumeUrl;
+    
+    // Fetch the resume from Cloudinary
+    const https = require('https');
+    const http = require('http');
+    const protocol = resumeUrl.startsWith('https') ? https : http;
+    
+    protocol.get(resumeUrl, (cloudinaryRes) => {
+      // Get the content type from Cloudinary response
+      let contentType = cloudinaryRes.headers['content-type'] || 'application/pdf';
+      
+      // Determine filename
+      const originalFilename = application.resumeUrl.split('/').pop() || `resume-${application.name.replace(/\s+/g, '-')}`;
+      const filename = originalFilename.includes('.') ? originalFilename : `${originalFilename}.pdf`;
+      
+      // Set appropriate headers
+      if (download === 'true') {
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      } else {
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      }
+      
+      // Set content type - force PDF for preview if file appears to be PDF
+      if (filename.toLowerCase().endsWith('.pdf')) {
+        contentType = 'application/pdf';
+      }
+      res.setHeader('Content-Type', contentType);
+      
+      // Pipe the response
+      cloudinaryRes.pipe(res);
+    }).on('error', (err) => {
+      console.error('Error fetching resume:', err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch resume",
+      });
+    });
+  } catch (error) {
+    console.error("Error serving resume:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+// GET /api/careers/resume-url/:id - Get a signed/transformed URL for resume
+router.get("/resume-url/:id", async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access",
+      });
+    }
+
+    const application = await Application.findById(req.params.id);
+    if (!application || !application.resumeUrl) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found",
+      });
+    }
+
+    // Return the resume URL info
+    res.json({
+      success: true,
+      resumeUrl: application.resumeUrl,
+      applicantName: application.name,
+      position: application.position,
+    });
+  } catch (error) {
+    console.error("Error getting resume URL:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+// PATCH /api/careers/applications/:id - Update application status
+router.patch("/applications/:id", async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access",
+      });
+    }
+
+    const { status } = req.body;
+    const validStatuses = ['pending', 'reviewed', 'shortlisted', 'rejected'];
+    
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const application = await Application.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    console.error("Error updating application:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 });
 
 module.exports = router;

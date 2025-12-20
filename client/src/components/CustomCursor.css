@@ -39,17 +39,8 @@
   border-color: var(--color-primary-light);
 }
 
-/* Hide custom cursor on touch devices */
-@media (pointer: coarse) {
-  .cursor-dot,
-  .cursor-ring {
-    display: none;
-  }
-}
-
-/* Hide default cursor when custom cursor is active */
-@media (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
+/* Custom cursor disabled - using default pointer */
+.cursor-dot,
+.cursor-ring {
+  display: none;
 }

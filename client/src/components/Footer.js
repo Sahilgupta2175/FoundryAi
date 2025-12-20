@@ -18,6 +18,7 @@ const Footer = () => {
   const getInTouchLinks = [
     { name: 'Careers', path: '/careers' },
     { name: 'Contact', path: '/contact' },
+    { name: 'For Existing Companies', path: '/contact?type=services', external: false },
     { name: 'For Founders', path: 'mailto:foundryai.india@gmail.com', external: true },
   ];
 
@@ -137,11 +138,6 @@ const Footer = () => {
           <p className="copyright">
             © {currentYear} FoundryAI. All rights reserved.
           </p>
-          <div className="made-by">
-            <span>Made with</span>
-            <span className="heart">♥</span>
-            <span>by FoundryAI Team</span>
-          </div>
         </div>
       </div>
     </footer>
