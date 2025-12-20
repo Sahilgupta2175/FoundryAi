@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { sendEmail } = require('../services/emailService');
 
 // Contact Schema (optional MongoDB storage)
@@ -12,6 +13,23 @@ const contactSchema = {
   message: String,
   createdAt: { type: Date, default: Date.now }
 };
+
+// Meeting Schema for scheduled calls
+const meetingSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  industry: { type: String, required: true },
+  services: [String],
+  socialMedia: String,
+  documents: String,
+  date: { type: Date, required: true },
+  time: { type: String, required: true },
+  status: { type: String, default: 'scheduled', enum: ['scheduled', 'completed', 'cancelled'] },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Meeting = mongoose.models.Meeting || mongoose.model('Meeting', meetingSchema);
 
 // POST /api/contact
 router.post('/', async (req, res) => {
@@ -110,6 +128,182 @@ router.post('/', async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Server error. Please try again later.' 
+    });
+  }
+});
+
+// POST /api/contact/schedule - Schedule a meeting
+router.post('/schedule', async (req, res) => {
+  try {
+    const { name, email, phone, industry, services, socialMedia, documents, date, time } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !phone || !industry || !date || !time) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
+    }
+
+    // Save meeting to MongoDB if connected
+    let savedMeeting = null;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        savedMeeting = await Meeting.create({
+          name,
+          email,
+          phone,
+          industry,
+          services,
+          socialMedia,
+          documents,
+          date: new Date(date),
+          time,
+        });
+        console.log("Meeting scheduled in database:", savedMeeting._id);
+      } catch (dbError) {
+        console.error("Database save error:", dbError);
+      }
+    }
+
+    const meetingDate = new Date(date);
+    const formattedDate = meetingDate.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    // Send email notification to admin
+    try {
+      await sendEmail({
+        to: 'guptasahil2175@gmail.com',
+        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        subject: `🗓️ New Meeting Scheduled: ${name} - ${formattedDate} at ${time}`,
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
+            <h1 style="color: #ffffff; text-align: center;">New Meeting Scheduled! 📅</h1>
+            
+            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px; margin-top: 20px;">
+              <h2 style="color: #0066ff; margin-top: 0;">Meeting Details</h2>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Date:</strong> ${formattedDate}</p>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Time:</strong> ${time}</p>
+              
+              <h3 style="color: #0066ff; margin-top: 25px;">Client Information</h3>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Name:</strong> ${name}</p>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Email:</strong> ${email}</p>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Phone:</strong> ${phone}</p>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Industry:</strong> ${industry}</p>
+              
+              <h3 style="color: #0066ff; margin-top: 25px;">Services Interested In</h3>
+              <ul style="color: #94a3b8;">
+                ${services && services.length > 0 ? services.map(s => `<li>${s}</li>`).join('') : '<li>Not specified</li>'}
+              </ul>
+              
+              <h3 style="color: #0066ff; margin-top: 25px;">Additional Information</h3>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Social Media:</strong> ${socialMedia || 'Not provided'}</p>
+              <p style="color: #94a3b8;"><strong style="color: #fff;">Documents:</strong> ${documents || 'Not provided'}</p>
+            </div>
+          </div>
+        `
+      });
+
+      // Send WhatsApp notification via WhatsApp Business API (if configured)
+      // For now, we'll send an SMS-style notification via email
+      // You can integrate with Twilio WhatsApp API or WhatsApp Business Cloud API
+
+      console.log('Meeting notification sent successfully');
+
+      // Send confirmation email to the client
+      await sendEmail({
+        to: email,
+        from: process.env.EMAIL_USER || 'noreply@foundryai.com',
+        subject: `Meeting Confirmed - ${formattedDate} at ${time}`,
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #ffffff; font-size: 28px; margin: 0;">Foundry<span style="background: linear-gradient(135deg, #0066ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI</span></h1>
+            </div>
+            
+            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px;">
+              <h2 style="color: #ffffff; margin-top: 0;">Your Meeting is Confirmed! ✅</h2>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                Hello ${name},
+              </p>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                Your consultation call with FoundryAI has been scheduled.
+              </p>
+              
+              <div style="background: rgba(0, 102, 255, 0.2); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+                <h3 style="color: #ffffff; margin: 0;">📅 ${formattedDate}</h3>
+                <p style="color: #0066ff; font-size: 20px; margin: 10px 0;">🕐 ${time}</p>
+              </div>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
+                We'll reach out to you via the contact details you provided. Please ensure you're available at the scheduled time.
+              </p>
+              
+              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin-bottom: 0;">
+                Looking forward to speaking with you!<br>
+                <strong style="color: #ffffff;">The FoundryAI Team</strong>
+              </p>
+            </div>
+          </div>
+        `
+      });
+
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Meeting scheduled successfully! You will receive a confirmation shortly.'
+    });
+
+  } catch (error) {
+    console.error('Schedule meeting error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
+    });
+  }
+});
+
+// GET /api/contact/meetings - Get all scheduled meetings (protected)
+router.get('/meetings', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.ADMIN_API_KEY) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized access'
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not connected'
+      });
+    }
+
+    const meetings = await Meeting.find()
+      .sort({ date: 1 })
+      .select('-__v');
+
+    res.json({
+      success: true,
+      count: meetings.length,
+      meetings
+    });
+  } catch (error) {
+    console.error('Error fetching meetings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
     });
   }
 });
