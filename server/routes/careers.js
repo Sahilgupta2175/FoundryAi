@@ -63,10 +63,28 @@ router.post("/upload-resume", upload.single("resume"), async (req, res) => {
       });
     }
 
+    // Log the uploaded file object for debugging
+    console.log('Uploaded resume file object:', req.file);
+
+    // Construct explicit URLs - prefer secure_url if available
+    const secureUrl = req.file.path || req.file.secure_url || null;
+    // Build a direct/raw URL via cloudinary helper (resource_type: 'raw') when possible
+    let rawUrl = null;
+    try {
+      if (req.file && req.file.filename) {
+        rawUrl = cloudinary.url(req.file.filename, { resource_type: 'raw', secure: true });
+      }
+    } catch (e) {
+      // ignore url build errors
+    }
+
     res.status(200).json({
       success: true,
-      url: req.file.path,
+      url: secureUrl,
+      rawUrl,
       publicId: req.file.filename,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
       message: "Resume uploaded successfully",
     });
   } catch (error) {
