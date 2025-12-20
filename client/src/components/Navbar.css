@@ -94,6 +94,27 @@
   gap: var(--space-4);
 }
 
+.btn-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-admin:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
 .mobile-menu-btn {
   display: none;
   background: transparent;
@@ -126,6 +147,27 @@
 .mobile-link:hover,
 .mobile-link.active {
   color: var(--color-primary);
+}
+
+.mobile-admin-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.mobile-admin-link:hover {
+  background: rgba(99, 102, 241, 0.2);
 }
 
 @media (max-width: 768px) {

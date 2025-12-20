@@ -16,11 +16,16 @@ cloudinary.config({
 // Configure Cloudinary storage for multer
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: "foundryai-resumes",
-    resource_type: "raw",
-    allowed_formats: ["pdf", "doc", "docx"],
-    public_id: (req, file) => `resume-${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
+  params: async (req, file) => {
+    // Get the file extension
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    
+    return {
+      folder: "foundryai-resumes",
+      resource_type: "raw",
+      format: ext, // Preserve the original file format (pdf, doc, docx)
+      public_id: `resume-${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, "")}`,
+    };
   },
 });
 

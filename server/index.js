@@ -62,6 +62,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/careers', require('./routes/careers'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
