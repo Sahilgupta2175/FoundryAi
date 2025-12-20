@@ -275,13 +275,6 @@ router.post('/schedule', async (req, res) => {
 // GET /api/contact/meetings - Get all scheduled meetings (protected)
 router.get('/meetings', async (req, res) => {
   try {
-    const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.ADMIN_API_KEY) {
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized access'
-      });
-    }
 
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({

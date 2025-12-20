@@ -273,13 +273,6 @@ router.get("/", (req, res) => {
 router.get("/applications", async (req, res) => {
   try {
     // Simple API key authentication (you can enhance this)
-    const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.ADMIN_API_KEY) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized access",
-      });
-    }
 
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({
@@ -309,13 +302,6 @@ router.get("/applications", async (req, res) => {
 // GET /api/careers/applications/:id/resume - Proxy resume for preview/download
 router.get("/applications/:id/resume", async (req, res) => {
   try {
-    const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.ADMIN_API_KEY) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized access",
-      });
-    }
 
     const application = await Application.findById(req.params.id);
     if (!application || !application.resumeUrl) {
@@ -375,13 +361,6 @@ router.get("/applications/:id/resume", async (req, res) => {
 // GET /api/careers/resume-url/:id - Get a signed/transformed URL for resume
 router.get("/resume-url/:id", async (req, res) => {
   try {
-    const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.ADMIN_API_KEY) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized access",
-      });
-    }
 
     const application = await Application.findById(req.params.id);
     if (!application || !application.resumeUrl) {
@@ -410,13 +389,6 @@ router.get("/resume-url/:id", async (req, res) => {
 // PATCH /api/careers/applications/:id - Update application status
 router.patch("/applications/:id", async (req, res) => {
   try {
-    const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.ADMIN_API_KEY) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized access",
-      });
-    }
 
     const { status } = req.body;
     const validStatuses = ['pending', 'reviewed', 'shortlisted', 'rejected'];
