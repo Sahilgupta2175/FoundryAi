@@ -156,7 +156,7 @@ const Careers = () => {
     try {
       let resumeUrl = null;
 
-      // Upload resume to Cloudinary if file is selected
+      // Upload resume to local storage if file is selected
       if (resumeFile) {
         setIsUploading(true);
         const formDataUpload = new FormData();

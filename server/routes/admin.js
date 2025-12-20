@@ -20,7 +20,7 @@ const applicationSchema = new mongoose.Schema({
   position: { type: String, required: true },
   experience: String,
   resumeUrl: String,
-  resumePublicId: String,
+  resumeFilename: String,
   status: { type: String, default: 'pending', enum: ['pending', 'reviewed', 'shortlisted', 'rejected'] },
   createdAt: { type: Date, default: Date.now }
 });

@@ -47,6 +47,22 @@ const AdminDashboard = () => {
     navigate('/admin/login');
   }, [navigate]);
 
+  const handleDownloadResume = async (resumeUrl, applicantName) => {
+    try {
+      if (resumeUrl.startsWith('/api/careers/files/')) {
+        // For local files, open through backend
+        const downloadUrl = `${process.env.REACT_APP_API_URL}${resumeUrl}`;
+        window.open(downloadUrl, '_blank');
+      } else {
+        // For other URLs (if any), open directly
+        window.open(resumeUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert(`Failed to download resume: ${error.message}`);
+    }
+  };
+
   const fetchStats = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/stats`, {
@@ -370,16 +386,16 @@ const AdminDashboard = () => {
                     </div>
                     <div className="td actions-col">
                       {app.resumeUrl && (
-                        <a
-                          href={app.resumeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
                           className="action-btn download"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadResume(app.resumeUrl, app.name);
+                          }}
                           title="Download Resume"
                         >
                           <HiArrowDownTray />
-                        </a>
+                        </button>
                       )}
                       <button
                         className="action-btn view"
@@ -484,15 +500,13 @@ const AdminDashboard = () => {
               {selectedApplication.resumeUrl && (
                 <div className="detail-section">
                   <h3><HiDocumentText /> Resume</h3>
-                  <a
-                    href={selectedApplication.resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => handleDownloadResume(selectedApplication.resumeUrl, selectedApplication.name)}
                     className="resume-link"
                   >
                     <HiArrowDownTray />
                     Download Resume
-                  </a>
+                  </button>
                 </div>
               )}
 
