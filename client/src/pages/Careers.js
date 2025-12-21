@@ -29,6 +29,7 @@ const Careers = () => {
     phone: '',
     position: '',
     experience: '',
+    coverLetter: '',
   });
   const [resumeFile, setResumeFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -192,7 +193,7 @@ const Careers = () => {
 
       if (data.success) {
         setSubmitStatus({ type: 'success', message: data.message });
-        setFormData({ name: '', email: '', phone: '', position: '', experience: '' });
+        setFormData({ name: '', email: '', phone: '', position: '', experience: '', coverLetter: '' });
         setResumeFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
@@ -414,6 +415,18 @@ const Careers = () => {
                   placeholder="e.g., 3 years"
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Cover Letter / Description</label>
+              <textarea
+                name="coverLetter"
+                className="form-textarea"
+                value={formData.coverLetter}
+                onChange={handleInputChange}
+                placeholder="Tell us why you're a great fit for this role..."
+                rows="4"
+              ></textarea>
             </div>
 
             <div className="form-group">

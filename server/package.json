@@ -4,7 +4,7 @@
   "description": "FoundryAI - AI Native Startup Studio",
   "main": "server/index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon index.js",
     "server": "nodemon index.js",
     "client": "npm start --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",

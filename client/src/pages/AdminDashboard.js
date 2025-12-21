@@ -504,6 +504,15 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              {selectedApplication.coverLetter && (
+                <div className="detail-section">
+                  <h3><HiDocumentText /> Cover Letter / Description</h3>
+                  <div className="cover-letter-content">
+                    <p>{selectedApplication.coverLetter}</p>
+                  </div>
+                </div>
+              )}
+
               {selectedApplication.resumeUrl && (
                 <div className="detail-section">
                   <h3><HiDocumentText /> Resume</h3>

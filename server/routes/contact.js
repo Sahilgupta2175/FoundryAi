@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { sendEmail } = require('../services/emailService');
+const { generateEmailTemplate } = require('../services/emailTemplates');
 
 // Contact Schema (optional MongoDB storage)
 const contactSchema = {
@@ -47,70 +48,92 @@ router.post('/', async (req, res) => {
     // Send email notification
     try {
       // Send notification to admin
+      const adminEmailContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">New Contact Message</h2>
+        
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 25px;">
+          <tr>
+            <td style="padding: 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Subject</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${subject || 'Not provided'}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Name</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${name}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Email</span><br>
+                    <a href="mailto:${email}" style="color: #0066ff; font-size: 15px;">${email}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Phone</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${phone || 'Not provided'}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;">
+                    <span style="color: #666; font-size: 13px;">Company</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${company || 'Not provided'}</strong>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <h3 style="color: #1a1a1a; margin: 0 0 10px 0; font-size: 16px;">Message</h3>
+        <div style="background-color: #f9fafb; border-left: 3px solid #0066ff; padding: 15px; border-radius: 0 6px 6px 0;">
+          <p style="margin: 0; color: #444; font-size: 14px; line-height: 1.6;">${message}</p>
+        </div>
+      `;
+
       await sendEmail({
         to: 'guptasahil2175@gmail.com',
         from: process.env.EMAIL_USER || 'noreply@foundryai.com',
         subject: `New Contact: ${subject || 'General Inquiry'}`,
-        html: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-          <p><strong>Company:</strong> ${company || 'Not provided'}</p>
-          <p><strong>Subject:</strong> ${subject || 'Not provided'}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message}</p>
-        `
+        html: generateEmailTemplate(`New Contact Form Submission`, adminEmailContent, `New message from ${name}: ${subject}`)
       });
       console.log('Contact email sent successfully to guptasahil2175@gmail.com');
 
       // Send auto-reply to the user
+      const userEmailContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 20px 0; font-size: 22px;">Hello ${name}! 👋</h2>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          Thank you for reaching out to <strong style="color: #0066ff;">FoundryAI</strong>! We've successfully received your message and our team is excited to connect with you.
+        </p>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          At FoundryAI, we're passionate about transforming visionary ideas into successful AI-powered ventures. Whether you're looking to discuss a potential partnership, explore our services, or simply learn more about what we do, we're here to help.
+        </p>
+        
+        <div style="background-color: #f0f7ff; border-left: 3px solid #0066ff; padding: 15px; margin: 0 0 25px 0; border-radius: 0 6px 6px 0;">
+          <p style="color: #444; margin: 0; font-size: 14px;">
+            <strong style="color: #1a1a1a;">What happens next?</strong><br>
+            Our team will review your message and get back to you within 24-48 business hours. For urgent matters, reach us at foundryai.india@gmail.com
+          </p>
+        </div>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0;">
+          Best regards,<br>
+          <strong style="color: #1a1a1a;">The FoundryAI Team</strong>
+        </p>
+      `;
+
       await sendEmail({
         to: email,
         from: process.env.EMAIL_USER || 'noreply@foundryai.com',
         subject: `Thank You for Contacting FoundryAI - We've Received Your Message`,
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #ffffff; font-size: 28px; margin: 0;">Foundry<span style="background: linear-gradient(135deg, #0066ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI</span></h1>
-            </div>
-            
-            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px;">
-              <h2 style="color: #ffffff; margin-top: 0;">Hello ${name}! 👋</h2>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                Thank you for reaching out to <strong style="color: #0066ff;">FoundryAI</strong>! We've successfully received your message and our team is excited to connect with you.
-              </p>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                At FoundryAI, we're passionate about transforming visionary ideas into successful AI-powered ventures. Whether you're looking to discuss a potential partnership, explore our services, or simply learn more about what we do, we're here to help.
-              </p>
-              
-              <div style="background: rgba(0, 102, 255, 0.1); border-left: 4px solid #0066ff; padding: 15px 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                <p style="color: #ffffff; margin: 0; font-size: 14px;">
-                  <strong>What happens next?</strong><br>
-                  <span style="color: #94a3b8;">Our team will review your message and get back to you within 24-48 business hours. For urgent matters, feel free to reach us directly at foundryai.india@gmail.com</span>
-                </p>
-              </div>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                In the meantime, feel free to explore our website to learn more about our AI-first approach to building successful startups.
-              </p>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin-bottom: 0;">
-                Best regards,<br>
-                <strong style="color: #ffffff;">The FoundryAI Team</strong>
-              </p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-              <p style="color: #64748b; font-size: 12px; margin: 0;">
-                © 2024 FoundryAI. Building the Future, Together.<br>
-                Bangalore, India
-              </p>
-            </div>
-          </div>
-        `
+        html: generateEmailTemplate(`Message Received`, userEmailContent, `Thanks for contacting FoundryAI`)
       });
       console.log('Auto-reply sent successfully to', email);
     } catch (emailError) {
@@ -176,36 +199,63 @@ router.post('/schedule', async (req, res) => {
 
     // Send email notification to admin
     try {
+      const adminMeetingContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">New Meeting Scheduled 📅</h2>
+        
+        <div style="background-color: #f0f7ff; border: 1px solid #d0e3ff; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">SCHEDULED FOR</p>
+          <h3 style="color: #0066ff; margin: 0; font-size: 20px;">${formattedDate}</h3>
+          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">${time}</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 25px;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Client Information</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Name</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${name}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Email</span><br>
+                    <a href="mailto:${email}" style="color: #0066ff; font-size: 15px;">${email}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Phone</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${phone}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;">
+                    <span style="color: #666; font-size: 13px;">Industry</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${industry}</strong>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        
+        <h3 style="color: #1a1a1a; margin: 0 0 10px 0; font-size: 16px;">Services Interested In</h3>
+        <ul style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 20px 0; padding-left: 20px;">
+          ${services && services.length > 0 ? services.map(s => `<li>${s}</li>`).join('') : '<li>Not specified</li>'}
+        </ul>
+        
+        <p style="color: #444; font-size: 14px; margin: 0 0 5px 0;"><strong style="color: #1a1a1a;">Social Media:</strong> ${socialMedia || 'Not provided'}</p>
+        <p style="color: #444; font-size: 14px; margin: 0;"><strong style="color: #1a1a1a;">Documents:</strong> ${documents || 'Not provided'}</p>
+      `;
+
       await sendEmail({
         to: 'guptasahil2175@gmail.com',
         from: process.env.EMAIL_USER || 'noreply@foundryai.com',
         subject: `🗓️ New Meeting Scheduled: ${name} - ${formattedDate} at ${time}`,
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
-            <h1 style="color: #ffffff; text-align: center;">New Meeting Scheduled! 📅</h1>
-            
-            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px; margin-top: 20px;">
-              <h2 style="color: #0066ff; margin-top: 0;">Meeting Details</h2>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Date:</strong> ${formattedDate}</p>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Time:</strong> ${time}</p>
-              
-              <h3 style="color: #0066ff; margin-top: 25px;">Client Information</h3>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Name:</strong> ${name}</p>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Email:</strong> ${email}</p>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Phone:</strong> ${phone}</p>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Industry:</strong> ${industry}</p>
-              
-              <h3 style="color: #0066ff; margin-top: 25px;">Services Interested In</h3>
-              <ul style="color: #94a3b8;">
-                ${services && services.length > 0 ? services.map(s => `<li>${s}</li>`).join('') : '<li>Not specified</li>'}
-              </ul>
-              
-              <h3 style="color: #0066ff; margin-top: 25px;">Additional Information</h3>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Social Media:</strong> ${socialMedia || 'Not provided'}</p>
-              <p style="color: #94a3b8;"><strong style="color: #fff;">Documents:</strong> ${documents || 'Not provided'}</p>
-            </div>
-          </div>
-        `
+        html: generateEmailTemplate(`New Meeting Scheduled`, adminMeetingContent, `Meeting with ${name} on ${formattedDate}`)
       });
 
       // Send WhatsApp notification via WhatsApp Business API (if configured)
@@ -215,43 +265,34 @@ router.post('/schedule', async (req, res) => {
       console.log('Meeting notification sent successfully');
 
       // Send confirmation email to the client
+      const userMeetingContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 20px 0; font-size: 22px;">Your Meeting is Confirmed! ✅</h2>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          Hello ${name}, your consultation call with FoundryAI has been scheduled.
+        </p>
+        
+        <div style="background-color: #f0f7ff; border: 1px solid #d0e3ff; border-radius: 6px; padding: 20px; text-align: center; margin: 0 0 25px 0;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">YOUR MEETING</p>
+          <h3 style="color: #0066ff; margin: 0; font-size: 20px;">📅 ${formattedDate}</h3>
+          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">🕐 ${time}</p>
+        </div>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          We'll reach out to you via the contact details you provided. Please ensure you're available at the scheduled time.
+        </p>
+        
+        <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0;">
+          Looking forward to speaking with you!<br>
+          <strong style="color: #1a1a1a;">The FoundryAI Team</strong>
+        </p>
+      `;
+
       await sendEmail({
         to: email,
         from: process.env.EMAIL_USER || 'noreply@foundryai.com',
         subject: `Meeting Confirmed - ${formattedDate} at ${time}`,
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0a0f1c 0%, #111827 100%); padding: 40px; border-radius: 16px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #ffffff; font-size: 28px; margin: 0;">Foundry<span style="background: linear-gradient(135deg, #0066ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI</span></h1>
-            </div>
-            
-            <div style="background: rgba(26, 34, 53, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 30px;">
-              <h2 style="color: #ffffff; margin-top: 0;">Your Meeting is Confirmed! ✅</h2>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                Hello ${name},
-              </p>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                Your consultation call with FoundryAI has been scheduled.
-              </p>
-              
-              <div style="background: rgba(0, 102, 255, 0.2); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
-                <h3 style="color: #ffffff; margin: 0;">📅 ${formattedDate}</h3>
-                <p style="color: #0066ff; font-size: 20px; margin: 10px 0;">🕐 ${time}</p>
-              </div>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7;">
-                We'll reach out to you via the contact details you provided. Please ensure you're available at the scheduled time.
-              </p>
-              
-              <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin-bottom: 0;">
-                Looking forward to speaking with you!<br>
-                <strong style="color: #ffffff;">The FoundryAI Team</strong>
-              </p>
-            </div>
-          </div>
-        `
+        html: generateEmailTemplate(`Meeting Confirmed`, userMeetingContent, `Your meeting on ${formattedDate} is confirmed`)
       });
 
     } catch (emailError) {
