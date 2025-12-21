@@ -649,7 +649,7 @@ router.post("/meetings/:id/cancel", verifyAdminToken, async (req, res) => {
       const adminEmailHtml = generateEmailTemplate('Meeting Cancelled', adminCancellationContent);
 
       await sendEmail({
-        to: process.env.CONTACT_EMAIL || 'admin@foundryai.com',
+        to: 'guptasahil2175@gmail.com',
         subject: `Meeting Cancelled - ${meeting.name} (${formattedDate})`,
         html: adminEmailHtml,
       });
