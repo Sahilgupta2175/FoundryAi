@@ -111,31 +111,6 @@ const JobOpenings = () => {
       {/* Jobs Section */}
       <section className="jobs-section section" ref={jobsRef}>
         <div className="container">
-          {/* Department Filter */}
-          <motion.div
-            className="jobs-filter"
-            initial="hidden"
-            animate={jobsInView ? 'visible' : 'hidden'}
-            variants={fadeUp}
-          >
-            <div className="filter-tabs">
-              {departments.map((dept) => (
-                <button
-                  key={dept}
-                  className={`filter-tab ${filter === dept ? 'active' : ''}`}
-                  onClick={() => setFilter(dept)}
-                >
-                  {dept === 'all' ? 'All Departments' : dept}
-                  {dept !== 'all' && (
-                    <span className="filter-count">
-                      {jobs.filter(j => j.department === dept).length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
           {/* Jobs List */}
           {loading ? (
             <div className="jobs-loading">
@@ -170,7 +145,7 @@ const JobOpenings = () => {
                     <span className="job-department">{job.department}</span>
                     <span className="job-type">{job.type}</span>
                   </div>
-                  
+
                   <h3 className="job-title">{job.title}</h3>
                   
                   <div className="job-meta">
@@ -189,14 +164,11 @@ const JobOpenings = () => {
                   {job.requirements && job.requirements.length > 0 && (
                     <div className="job-requirements">
                       <h4>Key Requirements:</h4>
-                      <ul>
-                        {job.requirements.slice(0, 4).map((req, idx) => (
-                          <li key={idx}>{req}</li>
+                      <div className="requirements-tags">
+                        {job.requirements.map((req, idx) => (
+                          <span key={idx} className="requirement-tag">{req}</span>
                         ))}
-                        {job.requirements.length > 4 && (
-                          <li className="more-reqs">+{job.requirements.length - 4} more</li>
-                        )}
-                      </ul>
+                      </div>
                     </div>
                   )}
                   

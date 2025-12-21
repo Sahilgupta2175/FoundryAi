@@ -296,65 +296,11 @@ router.get("/", async (req, res) => {
     if (mongoose.connection.readyState === 1) {
       // Fetch active jobs from database
       const jobs = await Job.find({ isActive: true }).sort({ createdAt: -1 });
-      
-      if (jobs.length > 0) {
-        return res.json(jobs);
-      }
+      return res.json(jobs);
     }
     
-    // Fallback to default jobs if database is empty or not connected
-    const defaultJobs = [
-      {
-        _id: '1',
-        title: "FullStack Developers with basic knowledge of Prompt Engineering",
-        department: "Engineering",
-        type: "Full time",
-        location: "Bangalore, India",
-        description:
-          "Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.",
-        requirements: [
-          "3+ years Full Stack Development",
-          "React/JavaScript expertise",
-          "Database design",
-          "Basic Prompt Engineering knowledge",
-          "API development",
-        ],
-      },
-      {
-        _id: '2',
-        title: "Software Engineer who have knowledge on GEO",
-        department: "Engineering",
-        type: "Full time",
-        location: "Bangalore, India",
-        description:
-          "Build location based applications and services using geospatial technologies and mapping solutions.",
-        requirements: [
-          "2+ years Software Engineering",
-          "GIS/Geospatial knowledge",
-          "Mapping APIs experience",
-          "Database systems",
-          "Problem solving skills",
-        ],
-      },
-      {
-        _id: '3',
-        title: "Performance Marketing Lead",
-        department: "Marketing",
-        type: "Full time",
-        location: "Bangalore, India",
-        description:
-          "Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.",
-        requirements: [
-          "5+ years Performance Marketing",
-          "Digital advertising platforms",
-          "Analytics and data driven approach",
-          "Campaign optimization",
-          "Team leadership",
-        ],
-      },
-    ];
-
-    res.json(defaultJobs);
+    // Return empty array if database is not connected
+    res.json([]);
   } catch (error) {
     console.error("Error fetching jobs:", error);
     res.status(500).json({ success: false, message: "Failed to fetch jobs" });

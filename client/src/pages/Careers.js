@@ -45,37 +45,9 @@ const Careers = () => {
     fetch(`${process.env.REACT_APP_API_URL}/api/careers`)
       .then(res => res.json())
       .then(data => setJobs(data))
-      .catch(() => {
-        // Fallback data
-        setJobs([
-          {
-            id: 1,
-            title: 'FullStack Developers with basic knowledge of Prompt Engineering',
-            department: 'Engineering',
-            type: 'Full time',
-            location: 'Bangalore, India',
-            description: 'Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.',
-            requirements: ['3+ years Full Stack Development', 'React/JavaScript expertise', 'Database design', 'Basic Prompt Engineering knowledge', 'API development']
-          },
-          {
-            id: 2,
-            title: 'Software Engineer who have knowledge on GEO',
-            department: 'Engineering',
-            type: 'Full time',
-            location: 'Bangalore, India',
-            description: 'Build location based applications and services using geospatial technologies and mapping solutions.',
-            requirements: ['2+ years Software Engineering', 'GIS/Geospatial knowledge', 'Mapping APIs experience', 'Database systems', 'Problem solving skills']
-          },
-          {
-            id: 3,
-            title: 'Performance Marketing Lead',
-            department: 'Marketing',
-            type: 'Full time',
-            location: 'Bangalore, India',
-            description: 'Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.',
-            requirements: ['5+ years Performance Marketing', 'Digital advertising platforms', 'Analytics and data driven approach', 'Campaign optimization', 'Team leadership']
-          }
-        ]);
+      .catch((error) => {
+        console.error('Failed to fetch jobs:', error);
+        setJobs([]);
       });
   }, []);
 
@@ -271,60 +243,6 @@ const Careers = () => {
                 <div className="card-icon">{benefit.icon}</div>
                 <h3 className="card-title">{benefit.title}</h3>
                 <p className="card-description">{benefit.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Jobs Section */}
-      <section className="jobs-section section" ref={jobsRef}>
-        <div className="container">
-          <motion.div
-            className="section-header"
-            initial="hidden"
-            animate={jobsInView ? 'visible' : 'hidden'}
-            variants={fadeUp}
-          >
-            <span className="section-label">Open Positions</span>
-            <h2 className="section-title">Current Openings</h2>
-            <p className="section-subtitle">
-              Join our team and help build the future of AI powered entrepreneurship.
-            </p>
-          </motion.div>
-
-          <div className="jobs-list">
-            {jobs.map((job, index) => (
-              <motion.div
-                key={job._id || job.id}
-                className="job-card"
-                initial={{ opacity: 0, y: 30 }}
-                animate={jobsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="job-header">
-                  <h3 className="job-title">{job.title}</h3>
-                  <div className="job-meta">
-                    <span className="job-tag">
-                      <HiBriefcase /> {job.department}
-                    </span>
-                    <span className="job-tag">
-                      <HiClock /> {job.type}
-                    </span>
-                    <span className="job-tag">
-                      <HiMapPin /> {job.location}
-                    </span>
-                  </div>
-                </div>
-                <p className="job-description">{job.description}</p>
-                <div className="job-requirements">
-                  <h4>Key Requirements:</h4>
-                  <ul>
-                    {job.requirements.map((req, idx) => (
-                      <li key={idx}>{req}</li>
-                    ))}
-                  </ul>
-                </div>
               </motion.div>
             ))}
           </div>
