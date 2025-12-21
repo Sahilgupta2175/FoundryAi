@@ -40,6 +40,22 @@ const applicationSchema = new mongoose.Schema({
 const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
 const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema);
 
+// Job Opening Schema
+const jobSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  department: { type: String, required: true },
+  type: { type: String, required: true, enum: ['Full time', 'Part time', 'Contract', 'Internship'] },
+  location: { type: String, required: true },
+  description: { type: String, required: true },
+  requirements: [String],
+  salary: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const Job = mongoose.models.Job || mongoose.model('Job', jobSchema);
+
 // Meeting Schema (must match contact.js schema)
 const meetingSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -669,6 +685,195 @@ router.post("/meetings/:id/cancel", verifyAdminToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to cancel meeting",
+    });
+  }
+});
+
+// ==================== JOB MANAGEMENT ROUTES ====================
+
+// GET /api/admin/jobs - Get all jobs (including inactive)
+router.get("/jobs", verifyAdminToken, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const jobs = await Job.find().sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      jobs,
+    });
+  } catch (error) {
+    console.error("Fetch jobs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch jobs",
+    });
+  }
+});
+
+// POST /api/admin/jobs - Create a new job
+router.post("/jobs", verifyAdminToken, async (req, res) => {
+  try {
+    const { title, department, type, location, description, requirements, salary, isActive } = req.body;
+
+    if (!title || !department || !type || !location || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide title, department, type, location, and description",
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const job = await Job.create({
+      title,
+      department,
+      type,
+      location,
+      description,
+      requirements: requirements || [],
+      salary,
+      isActive: isActive !== undefined ? isActive : true,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Job created successfully",
+      job,
+    });
+  } catch (error) {
+    console.error("Create job error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create job",
+    });
+  }
+});
+
+// PUT /api/admin/jobs/:id - Update a job
+router.put("/jobs/:id", verifyAdminToken, async (req, res) => {
+  try {
+    const { title, department, type, location, description, requirements, salary, isActive } = req.body;
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const job = await Job.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        department,
+        type,
+        location,
+        description,
+        requirements,
+        salary,
+        isActive,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      job,
+    });
+  } catch (error) {
+    console.error("Update job error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update job",
+    });
+  }
+});
+
+// DELETE /api/admin/jobs/:id - Delete a job
+router.delete("/jobs/:id", verifyAdminToken, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const job = await Job.findByIdAndDelete(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete job error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete job",
+    });
+  }
+});
+
+// PATCH /api/admin/jobs/:id/toggle - Toggle job active status
+router.patch("/jobs/:id/toggle", verifyAdminToken, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    job.isActive = !job.isActive;
+    job.updatedAt = new Date();
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Job ${job.isActive ? 'activated' : 'deactivated'} successfully`,
+      job,
+    });
+  } catch (error) {
+    console.error("Toggle job error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle job status",
     });
   }
 });

@@ -44,8 +44,23 @@ const applicationSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Job Opening Schema for MongoDB
+const jobSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  department: { type: String, required: true },
+  type: { type: String, required: true, enum: ['Full time', 'Part time', 'Contract', 'Internship'] },
+  location: { type: String, required: true },
+  description: { type: String, required: true },
+  requirements: [String],
+  salary: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
 // Only create model if it doesn't exist
 const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema);
+const Job = mongoose.models.Job || mongoose.model('Job', jobSchema);
 
 // POST /api/careers/upload-resume - Upload resume to Cloudinary
 router.post("/upload-resume", upload.single("resume"), async (req, res) => {
@@ -274,60 +289,76 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET /api/careers - Get job listings
-router.get("/", (req, res) => {
-  const jobs = [
-    {
-      id: 1,
-      title: "FullStack Developers with basic knowledge of Prompt Engineering",
-      department: "Engineering",
-      type: "Full time",
-      location: "Bangalore, India",
-      description:
-        "Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.",
-      requirements: [
-        "3+ years Full Stack Development",
-        "React/JavaScript expertise",
-        "Database design",
-        "Basic Prompt Engineering knowledge",
-        "API development",
-      ],
-    },
-    {
-      id: 2,
-      title: "Software Engineer who have knowledge on GEO",
-      department: "Engineering",
-      type: "Full time",
-      location: "Bangalore, India",
-      description:
-        "Build location based applications and services using geospatial technologies and mapping solutions.",
-      requirements: [
-        "2+ years Software Engineering",
-        "GIS/Geospatial knowledge",
-        "Mapping APIs experience",
-        "Database systems",
-        "Problem solving skills",
-      ],
-    },
-    {
-      id: 3,
-      title: "Performance Marketing Lead",
-      department: "Marketing",
-      type: "Full time",
-      location: "Bangalore, India",
-      description:
-        "Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.",
-      requirements: [
-        "5+ years Performance Marketing",
-        "Digital advertising platforms",
-        "Analytics and data driven approach",
-        "Campaign optimization",
-        "Team leadership",
-      ],
-    },
-  ];
+// GET /api/careers - Get active job listings
+router.get("/", async (req, res) => {
+  try {
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      // Fetch active jobs from database
+      const jobs = await Job.find({ isActive: true }).sort({ createdAt: -1 });
+      
+      if (jobs.length > 0) {
+        return res.json(jobs);
+      }
+    }
+    
+    // Fallback to default jobs if database is empty or not connected
+    const defaultJobs = [
+      {
+        _id: '1',
+        title: "FullStack Developers with basic knowledge of Prompt Engineering",
+        department: "Engineering",
+        type: "Full time",
+        location: "Bangalore, India",
+        description:
+          "Develop robust web applications and APIs with modern frameworks while leveraging AI prompt engineering for enhanced functionality.",
+        requirements: [
+          "3+ years Full Stack Development",
+          "React/JavaScript expertise",
+          "Database design",
+          "Basic Prompt Engineering knowledge",
+          "API development",
+        ],
+      },
+      {
+        _id: '2',
+        title: "Software Engineer who have knowledge on GEO",
+        department: "Engineering",
+        type: "Full time",
+        location: "Bangalore, India",
+        description:
+          "Build location based applications and services using geospatial technologies and mapping solutions.",
+        requirements: [
+          "2+ years Software Engineering",
+          "GIS/Geospatial knowledge",
+          "Mapping APIs experience",
+          "Database systems",
+          "Problem solving skills",
+        ],
+      },
+      {
+        _id: '3',
+        title: "Performance Marketing Lead",
+        department: "Marketing",
+        type: "Full time",
+        location: "Bangalore, India",
+        description:
+          "Lead performance marketing campaigns across digital channels to drive growth and user acquisition for our portfolio companies.",
+        requirements: [
+          "5+ years Performance Marketing",
+          "Digital advertising platforms",
+          "Analytics and data driven approach",
+          "Campaign optimization",
+          "Team leadership",
+        ],
+      },
+    ];
 
-  res.json(jobs);
+    res.json(defaultJobs);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch jobs" });
+  }
 });
 
 // GET /api/careers/applications - Get all applications (protected route for hiring)

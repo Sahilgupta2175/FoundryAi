@@ -8,6 +8,7 @@ import About from './pages/About';
 import OurModel from './pages/OurModel';
 import Portfolio from './pages/Portfolio';
 import Careers from './pages/Careers';
+import JobOpenings from './pages/JobOpenings';
 import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -27,6 +28,7 @@ function App() {
             <Route path="/our-model" element={<><Navbar /><OurModel /><Footer /></>} />
             <Route path="/portfolio" element={<><Navbar /><Portfolio /><Footer /></>} />
             <Route path="/careers" element={<><Navbar /><Careers /><Footer /></>} />
+            <Route path="/jobs" element={<><Navbar /><JobOpenings /><Footer /></>} />
             <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
             
             {/* Admin Routes (without Navbar and Footer) */}

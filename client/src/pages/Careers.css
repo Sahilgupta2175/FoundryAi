@@ -54,6 +54,36 @@
   font-size: var(--text-xl);
   color: var(--color-text-secondary);
   line-height: 1.7;
+  margin-bottom: var(--space-8);
+}
+
+/* View All Openings Button */
+.view-openings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.view-openings-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.view-openings-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.view-openings-btn:hover svg {
+  transform: translateX(4px);
 }
 
 /* Benefits */

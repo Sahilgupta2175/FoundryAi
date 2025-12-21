@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { Link } from 'react-router-dom';
 import { 
   HiBriefcase, 
   HiCpuChip, 
@@ -11,7 +12,8 @@ import {
   HiSparkles,
   HiMapPin,
   HiClock,
-  HiDocumentArrowUp
+  HiDocumentArrowUp,
+  HiArrowRight
 } from 'react-icons/hi2';
 import './Careers.css';
 
@@ -232,6 +234,9 @@ const Careers = () => {
               builder, a problem solver, and are obsessed with creating the future, you've found
               your home.
             </p>
+            <Link to="/jobs" className="view-openings-btn">
+              View All Openings <HiArrowRight />
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -291,7 +296,7 @@ const Careers = () => {
           <div className="jobs-list">
             {jobs.map((job, index) => (
               <motion.div
-                key={job.id}
+                key={job._id || job.id}
                 className="job-card"
                 initial={{ opacity: 0, y: 30 }}
                 animate={jobsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -400,7 +405,7 @@ const Careers = () => {
                 >
                   <option value="">Select a position</option>
                   {jobs.map((job) => (
-                    <option key={job.id} value={job.title}>{job.title}</option>
+                    <option key={job._id || job.id} value={job.title}>{job.title}</option>
                   ))}
                 </select>
               </div>
