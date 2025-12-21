@@ -39,6 +39,7 @@ const AdminDashboard = () => {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' or 'meetings'
+  const [meetingFilter, setMeetingFilter] = useState('upcoming'); // 'upcoming' or 'cancelled'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('adminToken');
@@ -381,8 +382,8 @@ const AdminDashboard = () => {
                 <HiCalendarDays />
               </div>
               <div className="stat-info">
-                <h3>{meetings.length}</h3>
-                <p>Scheduled Meetings</p>
+                <h3>{meetings.filter(m => m.status !== 'cancelled').length}</h3>
+                <p>Upcoming Meetings</p>
               </div>
             </motion.div>
           </div>
@@ -402,7 +403,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('meetings')}
           >
             <HiCalendarDays />
-            Meetings ({meetings.length})
+            Meetings ({meetings.filter(m => m.status !== 'cancelled').length})
           </button>
         </div>
 
@@ -552,87 +553,111 @@ const AdminDashboard = () => {
         {/* Meetings Section */}
         {activeTab === 'meetings' && (
           <div className="meetings-container">
-            {meetings.length === 0 ? (
-              <div className="empty-state">
-                <HiCalendarDays />
-                <h3>No scheduled meetings</h3>
-                <p>There are no meetings scheduled yet.</p>
-              </div>
-            ) : (
-              <div className="meetings-table">
-                <div className="table-header">
-                  <div className="th name-col">Client</div>
-                  <div className="th contact-col">Contact</div>
-                  <div className="th date-col">Date & Time</div>
-                  <div className="th status-col">Status</div>
-                  <div className="th actions-col">Actions</div>
-                </div>
+            {/* Meeting Filter Tabs */}
+            <div className="meeting-filter-tabs">
+              <button
+                className={`meeting-filter-btn ${meetingFilter === 'upcoming' ? 'active' : ''}`}
+                onClick={() => setMeetingFilter('upcoming')}
+              >
+                <HiClock />
+                Upcoming ({meetings.filter(m => m.status !== 'cancelled').length})
+              </button>
+              <button
+                className={`meeting-filter-btn cancelled ${meetingFilter === 'cancelled' ? 'active' : ''}`}
+                onClick={() => setMeetingFilter('cancelled')}
+              >
+                <HiXCircle />
+                Cancelled ({meetings.filter(m => m.status === 'cancelled').length})
+              </button>
+            </div>
 
-                {meetings.map((meeting) => (
-                  <motion.div
-                    key={meeting._id}
-                    className="table-row meeting-row"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    onClick={() => setSelectedMeeting(meeting)}
-                  >
-                    <div className="td name-col">
-                      <div className="applicant-info">
-                        <HiUserCircle className="user-avatar" />
-                        <div>
-                          <p className="applicant-name">{meeting.name}</p>
-                          {meeting.company && <p className="applicant-experience">{meeting.company}</p>}
+            {(() => {
+              const filteredMeetings = meetingFilter === 'upcoming' 
+                ? meetings.filter(m => m.status !== 'cancelled')
+                : meetings.filter(m => m.status === 'cancelled');
+              
+              return filteredMeetings.length === 0 ? (
+                <div className="empty-state">
+                  <HiCalendarDays />
+                  <h3>{meetingFilter === 'upcoming' ? 'No upcoming meetings' : 'No cancelled meetings'}</h3>
+                  <p>{meetingFilter === 'upcoming' ? 'There are no meetings scheduled yet.' : 'No meetings have been cancelled.'}</p>
+                </div>
+              ) : (
+                <div className="meetings-table">
+                  <div className="table-header">
+                    <div className="th name-col">Client</div>
+                    <div className="th contact-col">Contact</div>
+                    <div className="th date-col">Date & Time</div>
+                    <div className="th status-col">Status</div>
+                    <div className="th actions-col">Actions</div>
+                  </div>
+
+                  {filteredMeetings.map((meeting) => (
+                    <motion.div
+                      key={meeting._id}
+                      className="table-row meeting-row"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      onClick={() => setSelectedMeeting(meeting)}
+                    >
+                      <div className="td name-col">
+                        <div className="applicant-info">
+                          <HiUserCircle className="user-avatar" />
+                          <div>
+                            <p className="applicant-name">{meeting.name}</p>
+                            {meeting.company && <p className="applicant-experience">{meeting.company}</p>}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="td contact-col">
-                      <div className="contact-info">
-                        <span><HiEnvelope /> {meeting.email}</span>
-                        {meeting.phone && <span><HiPhone /> {meeting.phone}</span>}
+                      <div className="td contact-col">
+                        <div className="contact-info">
+                          <span><HiEnvelope /> {meeting.email}</span>
+                          {meeting.phone && <span><HiPhone /> {meeting.phone}</span>}
+                        </div>
                       </div>
-                    </div>
-                    <div className="td date-col">
-                      <div className="meeting-datetime">
-                        <span className="meeting-date"><HiCalendarDays /> {meeting.date}</span>
-                        <span className="meeting-time"><HiClock /> {meeting.time}</span>
+                      <div className="td date-col">
+                        <div className="meeting-datetime">
+                          <span className="meeting-date"><HiCalendarDays /> {meeting.date}</span>
+                          <span className="meeting-time"><HiClock /> {meeting.time}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="td status-col">
-                      <span className={`meeting-status-badge ${meeting.status || 'scheduled'}`}>
-                        {meeting.status === 'completed' && <HiCheckCircle />}
-                        {meeting.status === 'cancelled' && <HiXCircle />}
-                        {(!meeting.status || meeting.status === 'scheduled') && <HiClock />}
-                        {meeting.status ? meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1) : 'Scheduled'}
-                      </span>
-                    </div>
-                    <div className="td actions-col">
-                      <button
-                        className="action-btn view"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedMeeting(meeting);
-                        }}
-                        title="View Details"
-                      >
-                        <HiEye />
-                      </button>
-                      {meeting.status !== 'cancelled' && (
+                      <div className="td status-col">
+                        <span className={`meeting-status-badge ${meeting.status || 'scheduled'}`}>
+                          {meeting.status === 'completed' && <HiCheckCircle />}
+                          {meeting.status === 'cancelled' && <HiXCircle />}
+                          {(!meeting.status || meeting.status === 'scheduled') && <HiClock />}
+                          {meeting.status ? meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1) : 'Scheduled'}
+                        </span>
+                      </div>
+                      <div className="td actions-col">
                         <button
-                          className="action-btn cancel"
+                          className="action-btn view"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCancelMeeting(meeting._id, meeting);
+                            setSelectedMeeting(meeting);
                           }}
-                          title="Cancel Meeting"
+                          title="View Details"
                         >
-                          <HiXCircle />
+                          <HiEye />
                         </button>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                        {meeting.status !== 'cancelled' && (
+                          <button
+                            className="action-btn cancel"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelMeeting(meeting._id, meeting);
+                            }}
+                            title="Cancel Meeting"
+                          >
+                            <HiXCircle />
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
