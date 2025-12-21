@@ -63,9 +63,6 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-actions">
-          <Link to="/admin/login" className="btn btn-admin hide-mobile">
-            <HiShieldCheck /> Admin
-          </Link>
           <Link to="/contact" className="btn btn-primary hide-mobile">
             Partner With Us
           </Link>
@@ -112,15 +109,6 @@ const Navbar = () => {
             >
               <Link to="/contact" className="btn btn-primary w-full mt-4">
                 Partner With Us
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: (navLinks.length + 1) * 0.05 }}
-            >
-              <Link to="/admin/login" className="mobile-admin-link">
-                <HiShieldCheck /> Admin Login
               </Link>
             </motion.div>
           </motion.div>
