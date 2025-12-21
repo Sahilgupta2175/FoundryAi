@@ -274,11 +274,6 @@ const JobOpenings = () => {
                   variants={fadeUp}
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 >
-                  <div className="job-card-header">
-                    <span className="job-department">{job.department}</span>
-                    <span className="job-type">{job.type}</span>
-                  </div>
-
                   <h3 className="job-title">{job.title}</h3>
                   
                   <p className="job-description">{job.description}</p>
@@ -383,7 +378,7 @@ const JobOpenings = () => {
               We're always looking for talented individuals. Send us your resume 
               and we'll keep you in mind for future opportunities.
             </p>
-            <Link to="/careers" className="cta-btn">
+            <Link to="/careers" state={{ scrollToForm: true }} className="cta-btn">
               Submit Your Application <HiArrowRight />
             </Link>
           </motion.div>

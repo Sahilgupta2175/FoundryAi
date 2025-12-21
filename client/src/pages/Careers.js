@@ -10,8 +10,6 @@ import {
   HiLightBulb,
   HiHeart,
   HiSparkles,
-  HiMapPin,
-  HiClock,
   HiDocumentArrowUp,
   HiArrowRight
 } from 'react-icons/hi2';
@@ -21,7 +19,6 @@ const Careers = () => {
   const location = useLocation();
   const [heroRef, heroInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [benefitsRef, benefitsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const [jobsRef, jobsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [formRef, formInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [cultureRef, cultureInView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
@@ -35,7 +32,6 @@ const Careers = () => {
     coverLetter: '',
   });
   const [resumeFile, setResumeFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const formSectionRef = useRef(null);
@@ -54,7 +50,7 @@ const Careers = () => {
   }, []);
 
   useEffect(() => {
-    // Check if navigated from job openings page with position
+    // Check if navigated from job openings page with position or scrollToForm
     if (location.state?.position) {
       setFormData(prev => ({
         ...prev,
@@ -62,6 +58,16 @@ const Careers = () => {
       }));
       
       // Scroll to form section after a brief delay
+      setTimeout(() => {
+        if (formSectionRef.current) {
+          formSectionRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
+    } else if (location.state?.scrollToForm) {
+      // Just scroll to form without pre-filling position
       setTimeout(() => {
         if (formSectionRef.current) {
           formSectionRef.current.scrollIntoView({ 

@@ -63,19 +63,22 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
   border-radius: 10px;
-  color: white;
+  color: var(--color-text-primary);
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-glow);
+  isolation: isolate;
 }
 
 .view-openings-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  color: var(--color-text-primary);
 }
 
 .view-openings-btn svg {
