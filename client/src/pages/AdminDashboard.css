@@ -489,7 +489,7 @@
 }
 
 .modal-content {
-  background: rgba(26, 26, 46, 0.95);
+  background: rgb(26, 26, 46);
   border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 20px;
   max-width: 800px;
@@ -1462,62 +1462,75 @@
 
 /* Job Modal */
 .job-modal {
-  max-width: 700px;
+  max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   width: 100%;
 }
 
 .job-modal .modal-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
 }
 
-.job-form {
+.job-modal .modal-body {
   padding: 0;
 }
 
+.job-form {
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .job-form .form-row {
-  margin-bottom: 1.25rem;
+  margin: 0;
   width: 100%;
 }
 
 .job-form .form-row.two-cols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+  align-items: start;
 }
 
 .job-form .form-group {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
 }
 
 .job-form .form-group label {
   font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.01em;
 }
 
 .job-form .form-group input,
 .job-form .form-group select,
 .job-form .form-group textarea {
   width: 100%;
-  padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1.5px solid rgba(99, 102, 241, 0.25);
+  border-radius: 10px;
   color: white;
   font-size: 0.95rem;
   font-family: inherit;
+  line-height: 1.5;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .job-form .form-group input::placeholder,
 .job-form .form-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .job-form .form-group input:focus,
@@ -1525,7 +1538,8 @@
 .job-form .form-group textarea:focus {
   outline: none;
   border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
 
 .job-form .form-group select {
@@ -1533,21 +1547,22 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
-  padding-right: 2.5rem;
+  background-size: 16px;
+  padding-right: 3rem;
 }
 
 .job-form .form-group select option {
   background: #1a1a2e;
   color: white;
-  padding: 0.5rem;
+  padding: 0.75rem;
 }
 
 .job-form .form-group textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 110px;
   line-height: 1.5;
 }
 
@@ -1629,8 +1644,17 @@
     grid-template-columns: 1fr;
   }
 
+  .job-form {
+    padding: 1.5rem;
+  }
+
+  .job-modal .modal-header {
+    padding: 1.5rem;
+  }
+
   .job-form .form-row.two-cols {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .jobs-header {
