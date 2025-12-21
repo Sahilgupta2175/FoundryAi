@@ -8,10 +8,10 @@
 /* Hero Section */
 .job-hero {
   position: relative;
-  min-height: 60vh;
+  min-height: 45vh;
   display: flex;
   align-items: center;
-  padding: 120px 0 80px;
+  padding: 100px 0 40px;
   overflow: hidden;
 }
 
@@ -80,14 +80,14 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: #6366f1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .job-hero-title {
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 700;
   color: white;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   line-height: 1.2;
 }
 
@@ -102,7 +102,7 @@
   font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.7;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .hero-stats {
@@ -134,7 +134,174 @@
 
 /* Jobs Section */
 .jobs-section {
-  padding: 60px 0 100px;
+  padding: 0 0 60px;
+}
+
+/* Filter Section */
+.jobs-filter-section {
+  background: rgba(26, 26, 46, 0.4);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 102, 255, 0.15);
+  border-radius: 16px;
+  padding: 0;
+  margin-bottom: 3rem;
+  overflow: hidden;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.filter-header:hover {
+  background: rgba(0, 102, 255, 0.05);
+}
+
+.filter-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.filter-title svg {
+  color: #0066ff;
+  font-size: 1.4rem;
+}
+
+.filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  background: rgba(0, 102, 255, 0.2);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0066ff;
+}
+
+.clear-filters-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.filter-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(0, 102, 255, 0.1);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  border-radius: 6px;
+  color: #0066ff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn:hover {
+  background: rgba(0, 102, 255, 0.15);
+  border-color: rgba(0, 102, 255, 0.5);
+}
+
+.filter-toggle-btn svg {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+  transform: rotate(90deg);
+}
+
+.filter-toggle-btn.open svg {
+  transform: rotate(270deg);
+}
+
+.filter-content {
+  overflow: hidden;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding: 0 2rem 2rem 2rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-select:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 102, 255, 0.3);
+}
+
+.filter-select:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #0066ff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.filter-select option {
+  background: #1a1a2e;
+  color: white;
+  padding: 0.75rem;
 }
 
 /* Filter Tabs */
@@ -486,6 +653,20 @@
 
   .jobs-section .jobs-grid {
     grid-template-columns: 1fr;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clear-filters-btn {
+    width: 100%;
   }
 
   .filter-tabs {

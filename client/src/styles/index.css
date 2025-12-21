@@ -221,7 +221,7 @@ ul, ol {
 
 /* Section Base */
 .section {
-  padding: var(--space-24) 0;
+  padding: 3rem 0;
   position: relative;
 }
 

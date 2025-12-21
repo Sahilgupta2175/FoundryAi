@@ -7,7 +7,8 @@ import {
   HiMapPin,
   HiArrowRight,
   HiSparkles,
-  HiCurrencyRupee
+  HiCurrencyRupee,
+  HiFunnel
 } from 'react-icons/hi2';
 import './JobOpenings.css';
 
@@ -17,7 +18,10 @@ const JobOpenings = () => {
   
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -51,13 +55,28 @@ const JobOpenings = () => {
     },
   };
 
-  // Get unique departments for filter
+  // Get unique values for filters
   const departments = ['all', ...new Set(jobs.map(job => job.department))];
+  const jobTypes = ['all', ...new Set(jobs.map(job => job.type))];
+  const locations = ['all', ...new Set(jobs.map(job => job.location))];
 
-  // Filter jobs by department
-  const filteredJobs = filter === 'all' 
-    ? jobs 
-    : jobs.filter(job => job.department === filter);
+  // Filter jobs by all criteria
+  const filteredJobs = jobs.filter(job => {
+    const matchesDepartment = departmentFilter === 'all' || job.department === departmentFilter;
+    const matchesType = typeFilter === 'all' || job.type === typeFilter;
+    const matchesLocation = locationFilter === 'all' || job.location === locationFilter;
+    return matchesDepartment && matchesType && matchesLocation;
+  });
+
+  // Clear all filters
+  const clearFilters = () => {
+    setDepartmentFilter('all');
+    setTypeFilter('all');
+    setLocationFilter('all');
+  };
+
+  // Check if any filter is active
+  const hasActiveFilters = departmentFilter !== 'all' || typeFilter !== 'all' || locationFilter !== 'all';
 
   return (
     <main className="job-openings-page">
@@ -111,6 +130,94 @@ const JobOpenings = () => {
       {/* Jobs Section */}
       <section className="jobs-section section" ref={jobsRef}>
         <div className="container">
+          {/* Filter Section */}
+          <motion.div
+            className="jobs-filter-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={jobsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="filter-header" onClick={() => setIsFilterOpen(!isFilterOpen)}>
+              <h3 className="filter-title">
+                <HiFunnel /> Filter Positions
+                <span className="filter-count-badge">{filteredJobs.length}</span>
+              </h3>
+              <div className="filter-header-actions">
+                {hasActiveFilters && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearFilters();
+                    }} 
+                    className="clear-filters-btn"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button className={`filter-toggle-btn ${isFilterOpen ? 'open' : ''}`}>
+                  <HiArrowRight />
+                </button>
+              </div>
+            </div>
+
+            <motion.div 
+              className="filter-content"
+              initial={false}
+              animate={{ 
+                height: isFilterOpen ? 'auto' : 0,
+                opacity: isFilterOpen ? 1 : 0
+              }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
+              <div className="filters-grid">
+                <div className="filter-group">
+                  <label className="filter-label">Department</label>
+                  <select 
+                    className="filter-select"
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                  >
+                    {departments.map(dept => (
+                      <option key={dept} value={dept}>
+                        {dept === 'all' ? 'All Departments' : dept}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label className="filter-label">Job Type</label>
+                  <select 
+                    className="filter-select"
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                  >
+                    {jobTypes.map(type => (
+                      <option key={type} value={type}>
+                        {type === 'all' ? 'All Types' : type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label className="filter-label">Location</label>
+                  <select 
+                    className="filter-select"
+                    value={locationFilter}
+                    onChange={(e) => setLocationFilter(e.target.value)}
+                  >
+                    {locations.map(loc => (
+                      <option key={loc} value={loc}>
+                        {loc === 'all' ? 'All Locations' : loc}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
           {/* Jobs List */}
           {loading ? (
             <div className="jobs-loading">
@@ -172,7 +279,11 @@ const JobOpenings = () => {
                     </div>
                   )}
                   
-                  <Link to="/careers" className="apply-btn">
+                  <Link 
+                    to="/careers" 
+                    state={{ position: job.title }}
+                    className="apply-btn"
+                  >
                     Apply Now <HiArrowRight />
                   </Link>
                 </motion.div>

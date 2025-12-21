@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   HiBriefcase, 
   HiCpuChip, 
@@ -18,6 +18,7 @@ import {
 import './Careers.css';
 
 const Careers = () => {
+  const location = useLocation();
   const [heroRef, heroInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [benefitsRef, benefitsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [jobsRef, jobsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
@@ -37,6 +38,7 @@ const Careers = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const formSectionRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
@@ -50,6 +52,26 @@ const Careers = () => {
         setJobs([]);
       });
   }, []);
+
+  useEffect(() => {
+    // Check if navigated from job openings page with position
+    if (location.state?.position) {
+      setFormData(prev => ({
+        ...prev,
+        position: location.state.position
+      }));
+      
+      // Scroll to form section after a brief delay
+      setTimeout(() => {
+        if (formSectionRef.current) {
+          formSectionRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
+    }
+  }, [location]);
 
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
@@ -251,6 +273,7 @@ const Careers = () => {
 
       {/* Application Form Section */}
       <section className="apply-section section" ref={formRef}>
+        <div ref={formSectionRef}></div>
         <div className="container">
           <motion.div
             className="section-header"
