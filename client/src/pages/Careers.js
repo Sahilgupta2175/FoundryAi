@@ -155,8 +155,10 @@ const Careers = () => {
 
     try {
       let resumeUrl = null;
+      let resumePublicId = null;
+      let resumeFilename = null;
 
-      // Upload resume to local storage if file is selected
+      // Upload resume to Cloudinary if file is selected
       if (resumeFile) {
         setIsUploading(true);
         const formDataUpload = new FormData();
@@ -171,17 +173,19 @@ const Careers = () => {
         
         if (uploadData.success) {
           resumeUrl = uploadData.url;
+          resumePublicId = uploadData.publicId;
+          resumeFilename = uploadData.originalName;
         } else {
           throw new Error(uploadData.message || 'Resume upload failed');
         }
         setIsUploading(false);
       }
 
-      // Submit application with resume URL
+      // Submit application with resume URL and metadata
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/careers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, resumeUrl }),
+        body: JSON.stringify({ ...formData, resumeUrl, resumePublicId, resumeFilename }),
       });
 
       const data = await response.json();

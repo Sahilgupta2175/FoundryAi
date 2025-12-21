@@ -32,6 +32,8 @@ const AdminDashboard = () => {
   const [pagination, setPagination] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [adminUser, setAdminUser] = useState(null);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('adminToken');
@@ -49,17 +51,22 @@ const AdminDashboard = () => {
 
   const handleDownloadResume = async (resumeUrl, applicantName) => {
     try {
-      if (resumeUrl.startsWith('/api/careers/files/')) {
-        // For local files, open through backend
-        const downloadUrl = `${process.env.REACT_APP_API_URL}${resumeUrl}`;
-        window.open(downloadUrl, '_blank');
-      } else {
-        // For other URLs (if any), open directly
-        window.open(resumeUrl, '_blank');
-      }
+      // For Cloudinary URLs, open directly in new tab (will download)
+      window.open(resumeUrl, '_blank');
     } catch (error) {
       console.error('Download failed:', error);
       alert(`Failed to download resume: ${error.message}`);
+    }
+  };
+
+  const handlePreviewResume = (resumeUrl) => {
+    if (resumeUrl && resumeUrl.includes('.pdf')) {
+      // For PDFs from Cloudinary, we can embed them
+      setPreviewUrl(resumeUrl);
+      setShowPdfPreview(true);
+    } else {
+      // For other file types, just download
+      window.open(resumeUrl, '_blank');
     }
   };
 
@@ -500,13 +507,28 @@ const AdminDashboard = () => {
               {selectedApplication.resumeUrl && (
                 <div className="detail-section">
                   <h3><HiDocumentText /> Resume</h3>
-                  <button
-                    onClick={() => handleDownloadResume(selectedApplication.resumeUrl, selectedApplication.name)}
-                    className="resume-link"
-                  >
-                    <HiArrowDownTray />
-                    Download Resume
-                  </button>
+                  <div className="resume-actions">
+                    <button
+                      onClick={() => handlePreviewResume(selectedApplication.resumeUrl)}
+                      className="resume-action-btn preview"
+                    >
+                      <HiEye />
+                      Preview Resume
+                    </button>
+                    <button
+                      onClick={() => handleDownloadResume(selectedApplication.resumeUrl, selectedApplication.name)}
+                      className="resume-action-btn download"
+                    >
+                      <HiArrowDownTray />
+                      Download Resume
+                    </button>
+                  </div>
+                  {selectedApplication.resumeFilename && (
+                    <p className="resume-filename">
+                      <HiDocumentText />
+                      {selectedApplication.resumeFilename}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -534,6 +556,45 @@ const AdminDashboard = () => {
                 <HiTrash />
                 Delete Application
               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* PDF Preview Modal */}
+      {showPdfPreview && previewUrl && (
+        <div className="modal-overlay pdf-preview-overlay" onClick={() => setShowPdfPreview(false)}>
+          <motion.div
+            className="pdf-preview-modal"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pdf-preview-header">
+              <h2>Resume Preview</h2>
+              <div className="pdf-preview-actions">
+                <button
+                  className="pdf-action-btn"
+                  onClick={() => window.open(previewUrl, '_blank')}
+                  title="Open in new tab"
+                >
+                  <HiArrowDownTray />
+                  Download
+                </button>
+                <button
+                  className="close-btn"
+                  onClick={() => setShowPdfPreview(false)}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="pdf-preview-body">
+              <iframe
+                src={previewUrl}
+                title="Resume Preview"
+                className="pdf-iframe"
+              />
             </div>
           </motion.div>
         </div>

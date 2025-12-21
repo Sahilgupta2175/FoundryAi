@@ -3,35 +3,17 @@ const router = express.Router();
 const multer = require("multer");
 const mongoose = require("mongoose");
 const { sendEmail } = require("../services/emailService");
-const fs = require("fs");
-const path = require("path");
+const cloudinary = require("cloudinary").v2;
 
-// Local storage configuration
-const uploadsDir = path.join(__dirname, '../uploads/resumes');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Get original filename without extension
-    const originalName = file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, '_');
-    
-    // Create datetime string (YYYY-MM-DD_HH-MM-SS format)
-    const now = new Date();
-    const datetime = now.toISOString()
-      .replace(/T/, '_')
-      .replace(/\..+/, '')
-      .replace(/:/g, '-');
-    
-    const ext = path.extname(file.originalname);
-    // Format: originalfilename_2025-12-20_15-30-45.pdf
-    cb(null, `${originalName}_${datetime}${ext}`);
-  }
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Use memory storage for multer (files stored in memory before Cloudinary upload)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
@@ -54,6 +36,7 @@ const applicationSchema = new mongoose.Schema({
   position: { type: String, required: true },
   experience: String,
   resumeUrl: String,
+  resumePublicId: String, // Cloudinary public ID for deletion if needed
   resumeFilename: String,
   status: { type: String, default: 'pending', enum: ['pending', 'reviewed', 'shortlisted', 'rejected'] },
   createdAt: { type: Date, default: Date.now }
@@ -62,7 +45,7 @@ const applicationSchema = new mongoose.Schema({
 // Only create model if it doesn't exist
 const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema);
 
-// POST /api/careers/upload-resume - Upload resume to local storage
+// POST /api/careers/upload-resume - Upload resume to Cloudinary
 router.post("/upload-resume", upload.single("resume"), async (req, res) => {
   try {
     if (!req.file) {
@@ -72,20 +55,44 @@ router.post("/upload-resume", upload.single("resume"), async (req, res) => {
       });
     }
 
-    const filename = req.file.filename;
-    const fileUrl = `/api/careers/files/${filename}`;
-    
-    console.log("Resume uploaded locally:");
+    // Generate a unique filename with timestamp
+    const originalName = req.file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, '_');
+    const timestamp = Date.now();
+    const extension = req.file.originalname.split('.').pop();
+    // For raw files, we need to include extension in public_id
+    const publicId = `resumes/${originalName}_${timestamp}.${extension}`;
+
+    // Upload to Cloudinary using upload_stream
+    // We use resource_type: "raw" to avoid "Blocked for delivery" issues with PDFs 
+    // on some Cloudinary accounts that restrict PDF/ZIP delivery via image pipeline
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "raw",
+          public_id: publicId,
+          folder: "foundryai_resumes",
+          use_filename: true,
+          unique_filename: false,
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer);
+    });
+
+    console.log("Resume uploaded to Cloudinary:");
     console.log("  Original name:", req.file.originalname);
-    console.log("  Saved filename:", filename);
-    console.log("  File URL:", fileUrl);
+    console.log("  Cloudinary URL:", uploadResult.secure_url);
+    console.log("  Public ID:", uploadResult.public_id);
 
     res.status(200).json({
       success: true,
-      url: fileUrl,
-      filename: filename,
+      url: uploadResult.secure_url,
+      publicId: uploadResult.public_id,
       originalName: req.file.originalname,
-      message: "Resume uploaded successfully",
+      message: "Resume uploaded successfully to Cloudinary",
     });
   } catch (error) {
     console.error("Resume upload error:", error);
@@ -96,68 +103,12 @@ router.post("/upload-resume", upload.single("resume"), async (req, res) => {
   }
 });
 
-// GET /api/careers/files/:filename - Serve uploaded resume files
-router.get("/files/:filename", (req, res) => {
-  try {
-    const filename = req.params.filename;
-    const filePath = path.join(uploadsDir, filename);
-    
-    // Security check - ensure the file is in the uploads directory
-    if (!filePath.startsWith(uploadsDir)) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
-    }
-    
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found",
-      });
-    }
-    
-    // Get file extension and set content type
-    const ext = path.extname(filename).toLowerCase();
-    const contentTypes = {
-      '.pdf': 'application/pdf',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    };
-    
-    const contentType = contentTypes[ext] || 'application/octet-stream';
-    
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-    
-    fileStream.on('error', (error) => {
-      console.error("File stream error:", error);
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          message: "Error reading file",
-        });
-      }
-    });
-  } catch (error) {
-    console.error("File serve error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error serving file",
-    });
-  }
-});
+// Note: Files are now served directly from Cloudinary, no local file serving needed
 
 // POST /api/careers - Handle job application
 router.post("/", async (req, res) => {
   try {
-    const { name, email, phone, position, experience, resumeUrl } = req.body;
+    const { name, email, phone, position, experience, resumeUrl, resumePublicId, resumeFilename } = req.body;
 
     // Validate required fields
     if (!name || !email || !position) {
@@ -178,6 +129,8 @@ router.post("/", async (req, res) => {
           position,
           experience,
           resumeUrl,
+          resumePublicId,
+          resumeFilename,
         });
         console.log("Application saved to database:", savedApplication._id);
       } catch (dbError) {
