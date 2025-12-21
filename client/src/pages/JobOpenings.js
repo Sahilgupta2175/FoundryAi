@@ -274,7 +274,7 @@ const JobOpenings = () => {
                   variants={fadeUp}
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 >
-                  <h3 className="job-title">{job.title}</h3>
+                  <h3 className="job-title">Job Title : {job.title}</h3>
                   
                   <p className="job-description">{job.description}</p>
                   
