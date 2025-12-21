@@ -89,7 +89,7 @@
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -847,7 +847,17 @@
   }
 }
 
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 968px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .controls-bar {
     flex-direction: column;
     align-items: stretch;
@@ -869,6 +879,15 @@
   .td {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .tab-switcher {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -893,4 +912,261 @@
   .detail-grid {
     grid-template-columns: 1fr;
   }
+
+  .meeting-schedule-details {
+    flex-direction: column;
+  }
+}
+
+/* Tab Switcher */
+.tab-switcher {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(26, 26, 46, 0.6);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: white;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.tab-btn svg {
+  font-size: 1.2rem;
+}
+
+/* Meetings Stat Card Icon */
+.stat-icon.meetings {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+/* Meetings Container */
+.meetings-container {
+  background: rgba(26, 26, 46, 0.8);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.meetings-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.meetings-table .table-header {
+  grid-template-columns: 2fr 2fr 2fr 1.5fr 1fr;
+}
+
+.meetings-table .table-row {
+  grid-template-columns: 2fr 2fr 2fr 1.5fr 1fr;
+}
+
+.meeting-row {
+  cursor: pointer;
+}
+
+.meeting-row:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.meeting-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.meeting-date,
+.meeting-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.meeting-date svg,
+.meeting-time svg {
+  font-size: 1rem;
+  color: #6366f1;
+}
+
+/* Meeting Status Badge */
+.meeting-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.meeting-status-badge.scheduled {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.meeting-status-badge.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.meeting-status-badge.cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.meeting-status-badge.large {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+}
+
+/* Meeting Modal */
+.meeting-modal {
+  max-width: 600px;
+}
+
+.meeting-header {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(13, 148, 136, 0.1) 100%);
+  border-bottom: 1px solid rgba(20, 184, 166, 0.2);
+}
+
+.meeting-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #5eead4;
+}
+
+.meeting-header h2 svg {
+  font-size: 1.5rem;
+}
+
+.meeting-schedule-details {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.schedule-icon {
+  font-size: 1.5rem;
+  color: #6366f1;
+  margin-top: 0.25rem;
+}
+
+.schedule-item label {
+  display: block;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.schedule-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.meeting-status-info {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.close-modal-btn {
+  padding: 0.75rem 2rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  color: #a5b4fc;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-modal-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  color: white;
+}
+
+/* Cancel Meeting Button */
+.action-btn.cancel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.action-btn.cancel:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.cancel-meeting-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-meeting-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.cancel-meeting-btn svg {
+  font-size: 1.2rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
 }

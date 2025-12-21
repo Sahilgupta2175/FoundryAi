@@ -120,14 +120,17 @@ const Contact = () => {
     },
   ];
 
-  // Generate available time slots (10 AM to 10 PM, 10 AM to 5 PM always booked)
+  // Generate time slots (10 AM to 10 PM, 1-hour slots)
+  // Morning slots (10 AM - 5 PM) are shown as booked
   const generateTimeSlots = () => {
     const slots = [];
-    for (let hour = 17; hour <= 22; hour++) { // 5 PM to 10 PM available
+    for (let hour = 10; hour <= 22; hour++) { // 10 AM to 10 PM
+      const isBooked = hour < 17; // 10 AM to 4 PM (before 5 PM) are booked
       slots.push({
         time: `${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`,
         hour: hour,
-        available: true
+        available: !isBooked,
+        booked: isBooked
       });
     }
     return slots;
@@ -331,13 +334,14 @@ const Contact = () => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Phone Number</label>
+                    <label className="form-label">Phone Number *</label>
                     <input
                       type="tel"
                       name="phone"
                       className="form-input"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      required
                       placeholder="+91 XXXXX XXXXX"
                     />
                   </div>
@@ -350,19 +354,20 @@ const Contact = () => {
                       className="form-input"
                       value={formData.company}
                       onChange={handleInputChange}
-                      placeholder="Your company name"
+                      placeholder="Your company name (optional)"
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Subject</label>
+                  <label className="form-label">Subject *</label>
                   <input
                     type="text"
                     name="subject"
                     className="form-input"
                     value={formData.subject}
                     onChange={handleInputChange}
+                    required
                     placeholder="What's this about?"
                   />
                 </div>
@@ -441,22 +446,6 @@ const Contact = () => {
                   foundryai.india@gmail.com
                   <HiArrowRight />
                 </a>
-              </div>
-
-              <div className="contact-details">
-                <h3>Contact Details</h3>
-                {contactInfo.map((info, index) => (
-                  <div key={index} className="detail-item">
-                    <span className="detail-icon">{info.icon}</span>
-                    <div className="detail-content">
-                      {info.href ? (
-                        <a href={info.href} className="detail-value">{info.value}</a>
-                      ) : (
-                        <span className="detail-value">{info.value}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
               </div>
             </motion.div>
           </div>
@@ -574,16 +563,16 @@ const Contact = () => {
               {selectedDate && (
                 <div className="time-picker">
                   <h3>Available Times</h3>
-                  <p className="time-note">
-                    <HiClock /> Morning slots (10 AM - 5 PM) are fully booked
-                  </p>
                   <div className="time-slots">
                     {timeSlots.map((slot, index) => (
                       <button
                         key={index}
-                        className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
-                        onClick={() => setSelectedTime(slot.time)}
+                        type="button"
+                        className={`time-slot ${selectedTime === slot.time ? 'selected' : ''} ${slot.booked ? 'booked' : ''}`}
+                        onClick={() => !slot.booked && setSelectedTime(slot.time)}
+                        disabled={slot.booked}
                       >
+                        {slot.booked && <HiXMark className="booked-icon" />}
                         {slot.time}
                       </button>
                     ))}

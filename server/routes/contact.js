@@ -37,11 +37,11 @@ router.post('/', async (req, res) => {
   try {
     const { name, email, phone, company, subject, message } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !message) {
+    // Validate required fields (all required except company)
+    if (!name || !email || !phone || !subject || !message) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please provide name, email, and message' 
+        message: 'Please provide name, email, phone, subject, and message' 
       });
     }
 
@@ -168,6 +168,30 @@ router.post('/schedule', async (req, res) => {
       });
     }
 
+    const meetingDate = new Date(date);
+    
+    // Check for scheduling conflicts
+    if (mongoose.connection.readyState === 1) {
+      // Find meetings on the same date with the same time
+      const startOfDay = new Date(meetingDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(meetingDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const existingMeeting = await Meeting.findOne({
+        date: { $gte: startOfDay, $lte: endOfDay },
+        time: time,
+        status: { $ne: 'cancelled' }
+      });
+      
+      if (existingMeeting) {
+        return res.status(409).json({
+          success: false,
+          message: `This time slot (${time}) is already booked for ${meetingDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Please select a different time.`
+        });
+      }
+    }
+
     // Save meeting to MongoDB if connected
     let savedMeeting = null;
     if (mongoose.connection.readyState === 1) {
@@ -180,7 +204,7 @@ router.post('/schedule', async (req, res) => {
           services,
           socialMedia,
           documents,
-          date: new Date(date),
+          date: meetingDate,
           time,
         });
         console.log("Meeting scheduled in database:", savedMeeting._id);
@@ -189,7 +213,6 @@ router.post('/schedule', async (req, res) => {
       }
     }
 
-    const meetingDate = new Date(date);
     const formattedDate = meetingDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
@@ -200,7 +223,7 @@ router.post('/schedule', async (req, res) => {
     // Send email notification to admin
     try {
       const adminMeetingContent = `
-        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">New Meeting Scheduled 📅</h2>
+        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">New Meeting Scheduled</h2>
         
         <div style="background-color: #f0f7ff; border: 1px solid #d0e3ff; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px;">
           <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">SCHEDULED FOR</p>
@@ -254,7 +277,7 @@ router.post('/schedule', async (req, res) => {
       await sendEmail({
         to: 'guptasahil2175@gmail.com',
         from: process.env.EMAIL_USER || 'noreply@foundryai.com',
-        subject: `🗓️ New Meeting Scheduled: ${name} - ${formattedDate} at ${time}`,
+        subject: `New Meeting Scheduled: ${name} - ${formattedDate} at ${time}`,
         html: generateEmailTemplate(`New Meeting Scheduled`, adminMeetingContent, `Meeting with ${name} on ${formattedDate}`)
       });
 
@@ -266,7 +289,7 @@ router.post('/schedule', async (req, res) => {
 
       // Send confirmation email to the client
       const userMeetingContent = `
-        <h2 style="color: #1a1a1a; margin: 0 0 20px 0; font-size: 22px;">Your Meeting is Confirmed! ✅</h2>
+        <h2 style="color: #1a1a1a; margin: 0 0 20px 0; font-size: 22px;">Your Meeting is Confirmed!</h2>
         
         <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
           Hello ${name}, your consultation call with FoundryAI has been scheduled.
@@ -274,8 +297,8 @@ router.post('/schedule', async (req, res) => {
         
         <div style="background-color: #f0f7ff; border: 1px solid #d0e3ff; border-radius: 6px; padding: 20px; text-align: center; margin: 0 0 25px 0;">
           <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">YOUR MEETING</p>
-          <h3 style="color: #0066ff; margin: 0; font-size: 20px;">📅 ${formattedDate}</h3>
-          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">🕐 ${time}</p>
+          <h3 style="color: #0066ff; margin: 0; font-size: 20px;">${formattedDate}</h3>
+          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">${time}</p>
         </div>
         
         <p style="color: #444; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">

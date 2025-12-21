@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const { sendEmail } = require('../services/emailService');
+const { generateEmailTemplate } = require('../services/emailTemplates');
 
 // Admin Schema
 const adminSchema = new mongoose.Schema({
@@ -27,6 +29,26 @@ const applicationSchema = new mongoose.Schema({
 
 const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
 const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema);
+
+// Meeting Schema (must match contact.js schema)
+const meetingSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  company: String,
+  industry: { type: String, required: true },
+  services: [String],
+  socialMedia: String,
+  documents: String,
+  date: { type: Date, required: true },
+  time: { type: String, required: true },
+  status: { type: String, default: 'scheduled', enum: ['scheduled', 'completed', 'cancelled'] },
+  cancellationReason: String,
+  cancelledAt: Date,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Meeting = mongoose.models.Meeting || mongoose.model('Meeting', meetingSchema);
 
 // Middleware to verify admin JWT token
 const verifyAdminToken = (req, res, next) => {
@@ -365,6 +387,197 @@ router.get("/stats", verifyAdminToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch statistics",
+    });
+  }
+});
+
+// GET /api/admin/meetings - Get all scheduled meetings
+router.get("/meetings", verifyAdminToken, async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    // Get all meetings, sorted by date (upcoming first)
+    const meetings = await Meeting.find()
+      .sort({ date: 1, time: 1 });
+
+    // Format the date for display
+    const formattedMeetings = meetings.map(meeting => ({
+      ...meeting.toObject(),
+      date: new Date(meeting.date).toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }));
+
+    res.status(200).json({
+      success: true,
+      meetings: formattedMeetings,
+    });
+  } catch (error) {
+    console.error("Fetch meetings error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch meetings",
+    });
+  }
+});
+
+// PATCH /api/admin/meetings/:id/status - Update meeting status
+router.patch("/meetings/:id/status", verifyAdminToken, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!status || !['scheduled', 'completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    const meeting = await Meeting.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!meeting) {
+      return res.status(404).json({
+        success: false,
+        message: "Meeting not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Meeting status updated successfully",
+      meeting,
+    });
+  } catch (error) {
+    console.error("Update meeting status error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update meeting status",
+    });
+  }
+});
+
+// POST /api/admin/meetings/:id/cancel - Cancel meeting and notify user
+router.post("/meetings/:id/cancel", verifyAdminToken, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Cancellation reason is required",
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection not available",
+      });
+    }
+
+    // Find the meeting first to get user details
+    const meeting = await Meeting.findById(req.params.id);
+
+    if (!meeting) {
+      return res.status(404).json({
+        success: false,
+        message: "Meeting not found",
+      });
+    }
+
+    if (meeting.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: "Meeting is already cancelled",
+      });
+    }
+
+    // Update meeting status to cancelled
+    meeting.status = 'cancelled';
+    meeting.cancellationReason = reason;
+    meeting.cancelledAt = new Date();
+    await meeting.save();
+
+    // Format the date for email
+    const formattedDate = new Date(meeting.date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Send cancellation email to user
+    try {
+      const cancellationEmailContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">Meeting Cancelled</h2>
+        
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">YOUR SCHEDULED MEETING ON</p>
+          <h3 style="color: #dc2626; margin: 0; font-size: 20px;">${formattedDate}</h3>
+          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">${meeting.time}</p>
+          <p style="color: #dc2626; font-size: 14px; margin: 10px 0 0 0; font-weight: 600;">HAS BEEN CANCELLED</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 25px;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Reason for Cancellation</h3>
+              <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0;">${reason}</p>
+            </td>
+          </tr>
+        </table>
+
+        <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 20px; margin-bottom: 25px;">
+          <h3 style="color: #0369a1; margin: 0 0 10px 0; font-size: 16px;">Reschedule Your Meeting</h3>
+          <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0;">We apologize for any inconvenience. Please feel free to schedule a new meeting at your convenience through our website.</p>
+        </div>
+
+        <p style="color: #666; font-size: 14px; margin: 0;">If you have any questions, please don't hesitate to contact us.</p>
+      `;
+
+      const emailHtml = generateEmailTemplate('Meeting Cancelled', cancellationEmailContent);
+
+      await sendEmail({
+        to: meeting.email,
+        subject: 'Meeting Cancelled - Foundry AI',
+        html: emailHtml,
+      });
+
+      console.log('Cancellation email sent to:', meeting.email);
+    } catch (emailError) {
+      console.error('Failed to send cancellation email:', emailError);
+      // Continue even if email fails - meeting is still cancelled
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Meeting cancelled successfully and notification sent",
+      meeting,
+    });
+  } catch (error) {
+    console.error("Cancel meeting error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel meeting",
     });
   }
 });

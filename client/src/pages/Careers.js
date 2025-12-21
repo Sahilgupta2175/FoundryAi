@@ -377,13 +377,14 @@ const Careers = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Phone Number</label>
+                <label className="form-label">Phone Number *</label>
                 <input
                   type="tel"
                   name="phone"
                   className="form-input"
                   value={formData.phone}
                   onChange={handleInputChange}
+                  required
                   placeholder="+91 XXXXX XXXXX"
                 />
               </div>
@@ -405,13 +406,14 @@ const Careers = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Years of Experience</label>
+                <label className="form-label">Years of Experience *</label>
                 <input
                   type="text"
                   name="experience"
                   className="form-input"
                   value={formData.experience}
                   onChange={handleInputChange}
+                  required
                   placeholder="e.g., 3 years"
                 />
               </div>
@@ -424,7 +426,7 @@ const Careers = () => {
                 className="form-textarea"
                 value={formData.coverLetter}
                 onChange={handleInputChange}
-                placeholder="Tell us why you're a great fit for this role..."
+                placeholder="Tell us why you're a great fit for this role (optional)..."
                 rows="4"
               ></textarea>
             </div>

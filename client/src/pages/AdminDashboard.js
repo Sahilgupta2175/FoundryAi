@@ -18,12 +18,15 @@ import {
   HiBriefcase,
   HiCalendar,
   HiArrowDownTray,
+  HiCalendarDays,
+  HiMapPin,
 } from 'react-icons/hi2';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -31,9 +34,11 @@ const AdminDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [adminUser, setAdminUser] = useState(null);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [activeTab, setActiveTab] = useState('applications'); // 'applications' or 'meetings'
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('adminToken');
@@ -117,6 +122,29 @@ const AdminDashboard = () => {
     setLoading(false);
   }, [filter, currentPage, handleLogout]);
 
+  const fetchMeetings = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/admin/meetings`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      
+      if (response.status === 401) {
+        handleLogout();
+        return;
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setMeetings(data.meetings);
+      }
+    } catch (error) {
+      console.error('Failed to fetch meetings:', error);
+    }
+  }, [handleLogout]);
+
   useEffect(() => {
     // Check if logged in
     const token = localStorage.getItem('adminToken');
@@ -133,7 +161,8 @@ const AdminDashboard = () => {
     
     fetchStats();
     fetchApplications();
-  }, [navigate, fetchStats, fetchApplications]);
+    fetchMeetings();
+  }, [navigate, fetchStats, fetchApplications, fetchMeetings]);
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
@@ -181,6 +210,42 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Failed to delete application:', error);
+    }
+  };
+
+  const handleCancelMeeting = async (meetingId, meetingDetails) => {
+    const reason = window.prompt('Please provide a reason for cancellation (this will be sent to the client):');
+    
+    if (reason === null) {
+      return; // User clicked cancel
+    }
+    
+    if (!reason.trim()) {
+      alert('Please provide a reason for cancellation.');
+      return;
+    }
+    
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/admin/meetings/${meetingId}/cancel`,
+        {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ reason }),
+        }
+      );
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Meeting cancelled successfully. Email notification sent to the client.');
+        fetchMeetings();
+        setSelectedMeeting(null);
+      } else {
+        alert(data.message || 'Failed to cancel meeting');
+      }
+    } catch (error) {
+      console.error('Failed to cancel meeting:', error);
+      alert('Failed to cancel meeting. Please try again.');
     }
   };
 
@@ -303,9 +368,46 @@ const AdminDashboard = () => {
                 <p>Last 7 Days</p>
               </div>
             </motion.div>
+
+            <motion.div
+              className="stat-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              onClick={() => setActiveTab('meetings')}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="stat-icon meetings">
+                <HiCalendarDays />
+              </div>
+              <div className="stat-info">
+                <h3>{meetings.length}</h3>
+                <p>Scheduled Meetings</p>
+              </div>
+            </motion.div>
           </div>
         )}
 
+        {/* Tab Switcher */}
+        <div className="tab-switcher">
+          <button
+            className={`tab-btn ${activeTab === 'applications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('applications')}
+          >
+            <HiDocumentText />
+            Applications
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'meetings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('meetings')}
+          >
+            <HiCalendarDays />
+            Meetings ({meetings.length})
+          </button>
+        </div>
+
+        {activeTab === 'applications' && (
+          <>
         {/* Filters and Search */}
         <div className="controls-bar">
           <div className="filter-buttons">
@@ -444,6 +546,95 @@ const AdminDashboard = () => {
             </>
           )}
         </div>
+          </>
+        )}
+
+        {/* Meetings Section */}
+        {activeTab === 'meetings' && (
+          <div className="meetings-container">
+            {meetings.length === 0 ? (
+              <div className="empty-state">
+                <HiCalendarDays />
+                <h3>No scheduled meetings</h3>
+                <p>There are no meetings scheduled yet.</p>
+              </div>
+            ) : (
+              <div className="meetings-table">
+                <div className="table-header">
+                  <div className="th name-col">Client</div>
+                  <div className="th contact-col">Contact</div>
+                  <div className="th date-col">Date & Time</div>
+                  <div className="th status-col">Status</div>
+                  <div className="th actions-col">Actions</div>
+                </div>
+
+                {meetings.map((meeting) => (
+                  <motion.div
+                    key={meeting._id}
+                    className="table-row meeting-row"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => setSelectedMeeting(meeting)}
+                  >
+                    <div className="td name-col">
+                      <div className="applicant-info">
+                        <HiUserCircle className="user-avatar" />
+                        <div>
+                          <p className="applicant-name">{meeting.name}</p>
+                          {meeting.company && <p className="applicant-experience">{meeting.company}</p>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="td contact-col">
+                      <div className="contact-info">
+                        <span><HiEnvelope /> {meeting.email}</span>
+                        {meeting.phone && <span><HiPhone /> {meeting.phone}</span>}
+                      </div>
+                    </div>
+                    <div className="td date-col">
+                      <div className="meeting-datetime">
+                        <span className="meeting-date"><HiCalendarDays /> {meeting.date}</span>
+                        <span className="meeting-time"><HiClock /> {meeting.time}</span>
+                      </div>
+                    </div>
+                    <div className="td status-col">
+                      <span className={`meeting-status-badge ${meeting.status || 'scheduled'}`}>
+                        {meeting.status === 'completed' && <HiCheckCircle />}
+                        {meeting.status === 'cancelled' && <HiXCircle />}
+                        {(!meeting.status || meeting.status === 'scheduled') && <HiClock />}
+                        {meeting.status ? meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1) : 'Scheduled'}
+                      </span>
+                    </div>
+                    <div className="td actions-col">
+                      <button
+                        className="action-btn view"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMeeting(meeting);
+                        }}
+                        title="View Details"
+                      >
+                        <HiEye />
+                      </button>
+                      {meeting.status !== 'cancelled' && (
+                        <button
+                          className="action-btn cancel"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelMeeting(meeting._id, meeting);
+                          }}
+                          title="Cancel Meeting"
+                        >
+                          <HiXCircle />
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Application Detail Modal */}
@@ -564,6 +755,120 @@ const AdminDashboard = () => {
               >
                 <HiTrash />
                 Delete Application
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Meeting Detail Modal */}
+      {selectedMeeting && (
+        <div className="modal-overlay" onClick={() => setSelectedMeeting(null)}>
+          <motion.div
+            className="modal-content meeting-modal"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header meeting-header">
+              <h2><HiCalendarDays /> Meeting Details</h2>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedMeeting(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3><HiUserCircle /> Client Information</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Name</label>
+                    <p>{selectedMeeting.name}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Email</label>
+                    <p>{selectedMeeting.email}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Phone</label>
+                    <p>{selectedMeeting.phone || 'Not provided'}</p>
+                  </div>
+                  {selectedMeeting.company && (
+                    <div className="detail-item">
+                      <label>Company</label>
+                      <p>{selectedMeeting.company}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3><HiCalendarDays /> Meeting Schedule</h3>
+                <div className="meeting-schedule-details">
+                  <div className="schedule-item">
+                    <HiCalendarDays className="schedule-icon" />
+                    <div>
+                      <label>Date</label>
+                      <p className="schedule-value">{selectedMeeting.date}</p>
+                    </div>
+                  </div>
+                  <div className="schedule-item">
+                    <HiClock className="schedule-icon" />
+                    <div>
+                      <label>Time</label>
+                      <p className="schedule-value">{selectedMeeting.time}</p>
+                    </div>
+                  </div>
+                  <div className="schedule-item">
+                    <HiMapPin className="schedule-icon" />
+                    <div>
+                      <label>Type</label>
+                      <p className="schedule-value">{selectedMeeting.meetingType || 'Video Call'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedMeeting.message && (
+                <div className="detail-section">
+                  <h3><HiDocumentText /> Message</h3>
+                  <div className="cover-letter-content">
+                    <p>{selectedMeeting.message}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="detail-section">
+                <h3>Meeting Status</h3>
+                <div className="meeting-status-info">
+                  <span className={`meeting-status-badge large ${selectedMeeting.status || 'scheduled'}`}>
+                    {selectedMeeting.status === 'completed' && <HiCheckCircle />}
+                    {selectedMeeting.status === 'cancelled' && <HiXCircle />}
+                    {(!selectedMeeting.status || selectedMeeting.status === 'scheduled') && <HiClock />}
+                    {selectedMeeting.status ? selectedMeeting.status.charAt(0).toUpperCase() + selectedMeeting.status.slice(1) : 'Scheduled'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              {selectedMeeting.status !== 'cancelled' && (
+                <button
+                  className="cancel-meeting-btn"
+                  onClick={() => handleCancelMeeting(selectedMeeting._id, selectedMeeting)}
+                >
+                  <HiXCircle />
+                  Cancel Meeting
+                </button>
+              )}
+              <button
+                className="close-modal-btn"
+                onClick={() => setSelectedMeeting(null)}
+              >
+                Close
               </button>
             </div>
           </motion.div>

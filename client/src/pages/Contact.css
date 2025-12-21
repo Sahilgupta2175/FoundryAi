@@ -507,15 +507,37 @@ a.detail-value:hover {
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
-.time-slot:hover {
+.time-slot:hover:not(.booked) {
   border-color: var(--color-primary);
 }
 
 .time-slot.selected {
   background: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.time-slot.booked {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.time-slot.booked:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.booked-icon {
+  font-size: 14px;
+  color: #ef4444;
 }
 
 /* Schedule Form */

@@ -112,11 +112,11 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, phone, position, experience, coverLetter, resumeUrl, resumePublicId, resumeFilename } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !position) {
+    // Validate required fields (all required except coverLetter)
+    if (!name || !email || !phone || !position || !experience) {
       return res.status(400).json({
         success: false,
-        message: "Please provide name, email, and position",
+        message: "Please provide name, email, phone, position, and experience",
       });
     }
 
