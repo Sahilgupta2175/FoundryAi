@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -18,6 +19,7 @@ import ScrollToTop from './components/ScrollToTop';
 function App() {
   return (
     <Router>
+      <SpeedInsights />
       <div className="app">
         <ScrollToTop />
         <AnimatePresence mode="wait">
