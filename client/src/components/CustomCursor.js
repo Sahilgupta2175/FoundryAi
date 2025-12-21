@@ -9,9 +9,21 @@ const CustomCursor = () => {
   const [isClicking, setIsClicking] = useState(false);
 
   useEffect(() => {
+    // Don't run on touch devices or during SSR
+    if (typeof window === 'undefined' || window.matchMedia('(pointer: coarse)').matches) {
+      return;
+    }
+
+    let rafId = null;
+
     const handleMouseMove = (e) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-      setIsVisible(true);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        setPosition({ x: e.clientX, y: e.clientY });
+        setIsVisible(true);
+      });
     };
 
     const handleMouseEnter = () => setIsVisible(true);
@@ -43,6 +55,9 @@ const CustomCursor = () => {
     const interval = setInterval(checkPointer, 100);
 
     return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseenter', handleMouseEnter);
       window.removeEventListener('mouseleave', handleMouseLeave);
