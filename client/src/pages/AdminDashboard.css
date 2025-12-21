@@ -914,7 +914,11 @@
   }
 
   .meeting-schedule-details {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .meeting-detail-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1071,34 +1075,32 @@
 }
 
 .meeting-schedule-details {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .schedule-item {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
   padding: 1rem;
   background: rgba(99, 102, 241, 0.08);
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 10px;
-  flex: 1;
-  min-width: 150px;
 }
 
 .schedule-icon {
   font-size: 1.5rem;
   color: #6366f1;
-  margin-top: 0.25rem;
 }
 
 .schedule-item label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1109,10 +1111,33 @@
   color: white;
 }
 
+.schedule-item > div {
+  text-align: center;
+}
+
 .meeting-status-info {
   display: flex;
   justify-content: center;
   padding: 1rem 0;
+}
+
+/* Meeting Modal Detail Grid - ensure proper alignment */
+.meeting-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.meeting-detail-grid .detail-item {
+  text-align: center;
+}
+
+.meeting-detail-grid .detail-item label {
+  text-align: center;
+}
+
+.meeting-detail-grid .detail-item p {
+  text-align: center;
 }
 
 .close-modal-btn {

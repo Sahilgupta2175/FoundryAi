@@ -783,7 +783,7 @@ const AdminDashboard = () => {
             <div className="modal-body">
               <div className="detail-section">
                 <h3><HiUserCircle /> Client Information</h3>
-                <div className="detail-grid">
+                <div className="detail-grid meeting-detail-grid">
                   <div className="detail-item">
                     <label>Name</label>
                     <p>{selectedMeeting.name}</p>
@@ -796,12 +796,10 @@ const AdminDashboard = () => {
                     <label>Phone</label>
                     <p>{selectedMeeting.phone || 'Not provided'}</p>
                   </div>
-                  {selectedMeeting.company && (
-                    <div className="detail-item">
-                      <label>Company</label>
-                      <p>{selectedMeeting.company}</p>
-                    </div>
-                  )}
+                  <div className="detail-item">
+                    <label>Industry</label>
+                    <p>{selectedMeeting.industry || 'Not specified'}</p>
+                  </div>
                 </div>
               </div>
 

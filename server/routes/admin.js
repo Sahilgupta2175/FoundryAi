@@ -5,6 +5,14 @@ const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const { sendEmail } = require('../services/emailService');
 const { generateEmailTemplate } = require('../services/emailTemplates');
+const cloudinary = require("cloudinary").v2;
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Admin Schema
 const adminSchema = new mongoose.Schema({
@@ -21,7 +29,9 @@ const applicationSchema = new mongoose.Schema({
   phone: String,
   position: { type: String, required: true },
   experience: String,
+  coverLetter: String,
   resumeUrl: String,
+  resumePublicId: String, // Cloudinary public ID for deletion
   resumeFilename: String,
   status: { type: String, default: 'pending', enum: ['pending', 'reviewed', 'shortlisted', 'rejected'] },
   createdAt: { type: Date, default: Date.now }
@@ -328,7 +338,8 @@ router.delete("/applications/:id", verifyAdminToken, async (req, res) => {
       });
     }
 
-    const application = await Application.findByIdAndDelete(req.params.id);
+    // First find the application to get the resume public ID
+    const application = await Application.findById(req.params.id);
 
     if (!application) {
       return res.status(404).json({
@@ -337,9 +348,25 @@ router.delete("/applications/:id", verifyAdminToken, async (req, res) => {
       });
     }
 
+    // Delete resume from Cloudinary if it exists
+    if (application.resumePublicId) {
+      try {
+        const cloudinaryResult = await cloudinary.uploader.destroy(application.resumePublicId, {
+          resource_type: 'raw' // Important: resumes are uploaded as raw files
+        });
+        console.log('Cloudinary delete result:', cloudinaryResult);
+      } catch (cloudinaryError) {
+        console.error('Failed to delete resume from Cloudinary:', cloudinaryError);
+        // Continue with MongoDB deletion even if Cloudinary fails
+      }
+    }
+
+    // Delete from MongoDB
+    await Application.findByIdAndDelete(req.params.id);
+
     res.status(200).json({
       success: true,
-      message: "Application deleted successfully",
+      message: "Application and resume deleted successfully",
     });
   } catch (error) {
     console.error("Delete application error:", error);
@@ -566,6 +593,70 @@ router.post("/meetings/:id/cancel", verifyAdminToken, async (req, res) => {
     } catch (emailError) {
       console.error('Failed to send cancellation email:', emailError);
       // Continue even if email fails - meeting is still cancelled
+    }
+
+    // Send notification email to admin
+    try {
+      const adminCancellationContent = `
+        <h2 style="color: #1a1a1a; margin: 0 0 25px 0; font-size: 22px;">Meeting Cancelled</h2>
+        
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;">MEETING CANCELLED</p>
+          <h3 style="color: #dc2626; margin: 0; font-size: 20px;">${formattedDate}</h3>
+          <p style="color: #1a1a1a; font-size: 18px; margin: 5px 0 0 0; font-weight: 600;">${meeting.time}</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 25px;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Client Information</h3>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Name</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${meeting.name}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="color: #666; font-size: 13px;">Email</span><br>
+                    <a href="mailto:${meeting.email}" style="color: #0066ff; font-size: 15px;">${meeting.email}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;">
+                    <span style="color: #666; font-size: 13px;">Phone</span><br>
+                    <strong style="color: #1a1a1a; font-size: 15px;">${meeting.phone}</strong>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef2f2; border-radius: 6px; margin-bottom: 25px;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="color: #dc2626; margin: 0 0 15px 0; font-size: 16px;">Cancellation Reason</h3>
+              <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0;">${reason}</p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="color: #666; font-size: 14px; margin: 0;">The client has been notified via email about this cancellation.</p>
+      `;
+
+      const adminEmailHtml = generateEmailTemplate('Meeting Cancelled', adminCancellationContent);
+
+      await sendEmail({
+        to: process.env.CONTACT_EMAIL || 'admin@foundryai.com',
+        subject: `Meeting Cancelled - ${meeting.name} (${formattedDate})`,
+        html: adminEmailHtml,
+      });
+
+      console.log('Admin cancellation notification sent');
+    } catch (adminEmailError) {
+      console.error('Failed to send admin cancellation email:', adminEmailError);
     }
 
     res.status(200).json({
