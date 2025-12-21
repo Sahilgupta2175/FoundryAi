@@ -1,6 +1,6 @@
 .footer {
   position: relative;
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
   padding: var(--space-20) 0 var(--space-8);
   overflow: hidden;
 }

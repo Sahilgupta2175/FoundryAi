@@ -185,7 +185,7 @@
 
 /* Application Form */
 .apply-section {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
 }
 
 .application-form {
@@ -318,6 +318,7 @@
 /* Culture Section */
 .culture-section {
   position: relative;
+  background-color: var(--color-bg-secondary);
 }
 
 .culture-card {
