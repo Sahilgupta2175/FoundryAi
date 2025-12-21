@@ -2,21 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
-const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
-
-// Compression middleware - must be early in middleware stack
-app.use(compression({
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  },
-  level: 6
-}));
 
 // Middleware - CORS Configuration
 const allowedOrigins = [
