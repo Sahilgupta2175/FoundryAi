@@ -157,7 +157,7 @@ const About = () => {
               <p className="founder-bio">
                 FoundryAI was born from a simple observation: countless brilliant startup ideas
                 die because their founders lack a technical partner. Harikrishna envisioned a
-                new kind of company—a "foundry"—that would not just fund ideas but actively forge
+                new kind of company - a "foundry" - that would not just fund ideas but actively forge
                 them into reality using the transformative power of AI.
               </p>
               <p className="founder-bio">

@@ -211,7 +211,7 @@ const Home = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <p className="portfolio-description">
-                Addzipzz is our inaugural venture—a revolutionary marketing gig platform. It
+                Addzipzz is our inaugural venture - a revolutionary marketing gig platform. It
                 uses a fleet of proprietary AI agents to automate rapid advertisement and branding
                 campaigns, connecting businesses with marketing talent instantly and
                 efficiently.
