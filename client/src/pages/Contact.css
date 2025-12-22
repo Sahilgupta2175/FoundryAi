@@ -342,6 +342,14 @@ a.detail-value:hover {
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  .calendar-modal-overlay {
+    padding: var(--space-2);
+    align-items: flex-start;
+    padding-top: var(--space-16);
+  }
+}
+
 .calendar-modal {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
@@ -352,6 +360,21 @@ a.detail-value:hover {
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+}
+
+@media (max-width: 768px) {
+  .calendar-modal {
+    padding: var(--space-5);
+    border-radius: var(--radius-xl);
+    max-height: 85vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-modal {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+  }
 }
 
 .modal-close {
@@ -386,6 +409,29 @@ a.detail-value:hover {
   margin-bottom: var(--space-6);
 }
 
+@media (max-width: 768px) {
+  .calendar-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-2);
+    padding-right: var(--space-8);
+  }
+  
+  .calendar-subtitle {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-title {
+    font-size: var(--text-lg);
+  }
+  
+  .calendar-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
 .calendar-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -399,11 +445,24 @@ a.detail-value:hover {
   padding: var(--space-6);
 }
 
+@media (max-width: 768px) {
+  .calendar-picker {
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-picker {
+    padding: var(--space-3);
+  }
+}
+
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-4);
+  gap: var(--space-2);
 }
 
 .month-nav {
@@ -418,6 +477,15 @@ a.detail-value:hover {
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .month-nav {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
 }
 
 .month-nav:hover {
@@ -427,6 +495,19 @@ a.detail-value:hover {
 .current-month {
   font-weight: var(--font-semibold);
   font-size: var(--text-lg);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .current-month {
+    font-size: var(--text-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .current-month {
+    font-size: 0.9rem;
+  }
 }
 
 .calendar-weekdays {
@@ -444,6 +525,13 @@ a.detail-value:hover {
   padding: var(--space-2);
 }
 
+@media (max-width: 480px) {
+  .weekday {
+    font-size: 0.7rem;
+    padding: var(--space-1);
+  }
+}
+
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -457,6 +545,26 @@ a.detail-value:hover {
   cursor: pointer;
   transition: all var(--transition-fast);
   font-size: var(--text-sm);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .calendar-day {
+    padding: var(--space-2);
+    min-height: 32px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    padding: var(--space-1);
+    min-height: 28px;
+    font-size: 0.75rem;
+  }
 }
 
 .calendar-day:not(.disabled):hover {
@@ -484,6 +592,26 @@ a.detail-value:hover {
   margin-bottom: var(--space-2);
 }
 
+@media (max-width: 768px) {
+  .time-picker {
+    padding: var(--space-4);
+  }
+  
+  .time-picker h3 {
+    font-size: var(--text-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .time-picker {
+    padding: var(--space-3);
+  }
+  
+  .time-picker h3 {
+    font-size: 0.95rem;
+  }
+}
+
 .time-note {
   display: flex;
   align-items: center;
@@ -499,6 +627,13 @@ a.detail-value:hover {
   gap: var(--space-2);
 }
 
+@media (max-width: 480px) {
+  .time-slots {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+
 .time-slot {
   padding: var(--space-3) var(--space-4);
   background: var(--color-bg-secondary);
@@ -511,6 +646,14 @@ a.detail-value:hover {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 480px) {
+  .time-slot {
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.85rem;
+  }
 }
 
 .time-slot:hover:not(.booked) {
@@ -635,8 +778,29 @@ a.detail-value:hover {
   .services-checkboxes {
     grid-template-columns: 1fr;
   }
+  
+  .calendar-content {
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  
+  .schedule-form h3 {
+    font-size: var(--text-base);
+  }
+}
 
-  .calendar-modal {
-    padding: var(--space-4);
+@media (max-width: 480px) {
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  
+  .calendar-days {
+    gap: 2px;
+  }
+  
+  .calendar-weekdays {
+    gap: 2px;
   }
 }

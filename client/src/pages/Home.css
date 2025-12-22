@@ -8,12 +8,15 @@
   align-items: center;
   padding: var(--space-32) 0 var(--space-20);
   overflow: hidden;
+  width: 100%;
 }
 
 .hero-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  width: 100%;
+  height: 100%;
 }
 
 .hero-grid {
@@ -50,6 +53,20 @@
   opacity: 0.2;
 }
 
+@media (max-width: 768px) {
+  .hero-glow-1 {
+    width: 400px;
+    height: 400px;
+    right: -200px;
+  }
+
+  .hero-glow-2 {
+    width: 300px;
+    height: 300px;
+    left: -150px;
+  }
+}
+
 .hero-container {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -57,6 +74,8 @@
   align-items: center;
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero-content {
@@ -244,6 +263,8 @@
 .services-section {
   background: var(--color-bg-secondary);
   position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .services-section::before {
@@ -294,6 +315,8 @@
 /* Portfolio Preview Section */
 .portfolio-preview-section {
   position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .portfolio-showcase {
@@ -407,6 +430,8 @@
   position: relative;
   text-align: center;
   padding: var(--space-32) 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .cta-bg {
@@ -482,30 +507,67 @@
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: var(--space-24) 0 var(--space-16);
+    padding: calc(var(--space-20) + var(--space-4)) 0 var(--space-12);
+    min-height: auto;
+  }
+
+  .hero-content {
+    padding: 0;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-4);
   }
 
   .hero-title {
-    font-size: var(--text-4xl);
+    font-size: clamp(1.875rem, 6vw, 2.5rem);
+    margin-bottom: var(--space-5);
+    line-height: 1.15;
+    padding: 0 var(--space-2);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.9rem, 4vw, 1rem);
+    margin-bottom: var(--space-6);
+    padding: 0 var(--space-3);
+    line-height: 1.6;
   }
 
   .hero-actions {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-3);
+    padding: 0 var(--space-3);
+    margin-bottom: var(--space-8);
   }
 
   .hero-actions .btn {
     width: 100%;
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--text-base);
+    justify-content: center;
   }
 
   .hero-stats {
-    flex-direction: column;
-    gap: var(--space-4);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-4);
+    margin: 0 var(--space-3);
+    justify-content: center;
+  }
+
+  .stat-item {
+    text-align: center;
+    flex: 1 1 auto;
+    min-width: 100px;
   }
 
   .stat-divider {
-    width: 100%;
-    height: 1px;
+    display: none;
   }
 
   .portfolio-metrics {
@@ -515,5 +577,82 @@
 
   .scroll-indicator {
     display: none;
+  }
+
+  .service-card {
+    padding: var(--space-6);
+  }
+
+  .service-card .card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .portfolio-description {
+    font-size: var(--text-base);
+  }
+
+  .cta-title {
+    font-size: var(--text-2xl);
+    padding: 0 var(--space-4);
+  }
+
+  .cta-subtitle {
+    font-size: var(--text-base);
+    padding: 0 var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: calc(var(--space-16) + var(--space-4)) 0 var(--space-10);
+  }
+
+  .hero-title {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    line-height: 1.2;
+    padding: 0 var(--space-1);
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    padding: 0 var(--space-2);
+  }
+
+  .hero-badge {
+    font-size: 0.7rem;
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .hero-actions {
+    padding: 0 var(--space-2);
+    gap: var(--space-3);
+  }
+
+  .hero-actions .btn {
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.9rem;
+  }
+
+  .hero-stats {
+    margin: 0 var(--space-2);
+    padding: var(--space-4) var(--space-3);
+    gap: var(--space-4);
+    flex-direction: column;
+  }
+
+  .stat-item {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .stat-value {
+    font-size: var(--text-lg);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
   }
 }
