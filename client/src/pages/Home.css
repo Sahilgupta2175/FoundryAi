@@ -573,12 +573,6 @@
   .portfolio-metrics {
     flex-direction: column;
     gap: var(--space-4);
-    text-align: center;
-  }
-
-  .portfolio-actions {
-    display: flex;
-    justify-content: center;
   }
 
   .scroll-indicator {
@@ -597,6 +591,9 @@
 
   .portfolio-description {
     font-size: var(--text-base);
+  }
+
+  .portfolio-content {
     text-align: center;
   }
 
@@ -661,5 +658,9 @@
 
   .stat-label {
     font-size: 0.7rem;
+  }
+
+  .portfolio-content {
+    text-align: center;
   }
 }
