@@ -573,6 +573,12 @@
   .portfolio-metrics {
     flex-direction: column;
     gap: var(--space-4);
+    text-align: center;
+  }
+
+  .portfolio-actions {
+    display: flex;
+    justify-content: center;
   }
 
   .scroll-indicator {
@@ -591,6 +597,7 @@
 
   .portfolio-description {
     font-size: var(--text-base);
+    text-align: center;
   }
 
   .cta-title {

@@ -7,7 +7,7 @@
 /* Hero */
 .ourmodel-hero {
   position: relative;
-  padding: var(--space-24) 0 var(--space-20);
+  padding: 2rem 0 var(--space-20);
   overflow: hidden;
 }
 
@@ -95,6 +95,9 @@
   font-size: var(--text-4xl);
   font-weight: var(--font-extrabold);
   line-height: 1;
+  display: flex;
+  align-items: flex-start;
+  padding-top: var(--space-8);
 }
 
 .step-content {
@@ -180,9 +183,40 @@
 
   .step-number {
     font-size: var(--text-2xl);
+    padding-top: var(--space-3);
   }
 
   .step-content::before {
     left: -28px;
+    top: 24px;
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .process-timeline::before {
+    left: 20px;
+  }
+
+  .process-step {
+    grid-template-columns: 50px 1fr;
+    gap: var(--space-3);
+  }
+
+  .step-number {
+    font-size: var(--text-xl);
+    padding-top: var(--space-2);
+  }
+
+  .step-content {
+    padding: var(--space-5);
+  }
+
+  .step-content::before {
+    left: -24px;
+    top: 20px;
+    width: 8px;
+    height: 8px;
   }
 }

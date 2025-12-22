@@ -7,7 +7,7 @@
 /* Hero */
 .about-hero {
   position: relative;
-  padding: var(--space-24) 0 var(--space-20);
+  padding: 2rem 0 var(--space-20);
   overflow: hidden;
 }
 
@@ -277,6 +277,10 @@
 @media (max-width: 768px) {
   .about-hero-title {
     font-size: var(--text-4xl);
+  }
+
+  .mission-content {
+    text-align: center;
   }
 
   .founder-avatar {

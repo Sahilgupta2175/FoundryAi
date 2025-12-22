@@ -7,7 +7,7 @@
 /* Hero */
 .portfolio-hero {
   position: relative;
-  padding: var(--space-24) 0 var(--space-20);
+  padding: 2rem 0 var(--space-20);
   overflow: hidden;
 }
 
